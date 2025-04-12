@@ -7,7 +7,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static(__dirname)); // ⬅️ Serves index.html and style.css
 
-const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID");
+const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/48b1a4de8f8748e888ab17b21df90dbb");
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 app.post('/send', async (req, res) => {
