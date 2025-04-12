@@ -1,0 +1,15 @@
+{
+  "name": "sepolia-faucet",
+  "version": "1.0.0",
+  "description": "Sepolia ETH Faucet",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "ethers": "^6.6.2",
+    "cors": "^2.8.5"
+  }
+}
