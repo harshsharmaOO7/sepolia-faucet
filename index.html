@@ -1,14 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sepolia Faucet</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 100px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 300px;
+      font-size: 16px;
+    }
+    button {
+      background: #00b894;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Sepolia Ethereum Faucet</h1>
-  <input type="text" id="walletAddress" placeholder="Enter your wallet address">
-  <button onclick="requestEth()">Request 0.05 Sepolia ETH</button>
-  <p id="status"></p>
-  <script src="faucet.js"></script>
+  <h1>🚰 Sepolia ETH Faucet</h1>
+  <input type="text" id="address" placeholder="Enter your wallet address" />
+  <button onclick="requestEth()">Send 0.05 Sepolia ETH</button>
+  <div id="message"></div>
+
+  <script>
+    async function requestEth() {
+      const address = document.getElementById('address').value;
+      const msg = document.getElementById('message');
+      msg.textContent = 'Sending...';
+
+      try {
+        const response = await fetch('/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ address }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          msg.innerHTML = `✅ Sent! <br/> TX Hash: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank">${data.txHash}</a>`;
+        } else {
+          msg.textContent = `❌ Error: ${data.message}`;
+        }
+      } catch (err) {
+        msg.textContent = '❌ Failed to connect to the faucet.';
+      }
+    }
+  </script>
 </body>
 </html>
