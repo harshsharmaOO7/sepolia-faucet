@@ -1,7 +1,7 @@
 const express = require('express');
 const { ethers } = require('ethers');
 require('dotenv').config();
-
+const path = require('path');
 const app = express();
 const PORT = 3000;
 app.use(express.json());
@@ -28,7 +28,9 @@ app.post('/send', async (req, res) => {
     res.json({ success: false, message: err.message });
   }
 });
-
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 app.listen(PORT, () => {
   console.log(`Faucet running on http://localhost:${PORT}`);
 });
