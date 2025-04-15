@@ -1,5 +1,5 @@
 async function requestEth() {
-  const address = document.getElementById("walletAddress").value;
+  const address = document.getElementById("address").value;
   const status = document.getElementById("status");
 
   status.textContent = "Sending request...";
