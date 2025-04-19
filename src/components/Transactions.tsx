@@ -26,7 +26,7 @@ const Transactions = () => {
     const fetchTransactions = async () => {
       try {
         // Replace with your API endpoint
-        const response = await fetch('YOUR_API_ENDPOINT/transactions');
+        const res = await fetch('https://sepolia-faucet-ki2h.onrender.com/api/recent');
         const data = await response.json();
         setTransactions(data);
       } catch (error) {
