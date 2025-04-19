@@ -45,7 +45,7 @@ const FaucetForm = () => {
       setIsLoading(true);
       
       // Replace this with your API endpoint
-      const response = await fetch('YOUR_API_ENDPOINT', {
+     const response = await fetch('https://sepolia-faucet-ki2h.onrender.com/api/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
