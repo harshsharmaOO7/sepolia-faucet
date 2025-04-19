@@ -2,19 +2,26 @@ const express = require('express');
 const { ethers } = require('ethers');
 require('dotenv').config();
 const path = require('path');
-const app = express();
-const PORT = 3000;
-app.use(express.json());
-app.use(express.static(__dirname)); // ⬅️ Serves index.html and style.css
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// JSON body parser
+app.use(express.json());
+
+// ✅ Serve static files from dist (Vite frontend build output)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// ✅ Faucet config (RPC + private key)
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/48b1a4de8f8748e888ab17b21df90dbb");
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
+// ✅ Faucet endpoint
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
   if (!ethers.isAddress(address)) {
-    return res.json({ success: false, message: "Invalid address" });
+    return res.status(400).json({ success: false, message: "Invalid address" });
   }
 
   try {
@@ -25,12 +32,17 @@ app.post('/send', async (req, res) => {
 
     res.json({ success: true, txHash: tx.hash });
   } catch (err) {
-    res.json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+
+// ✅ Serve index.html for any other route (client-side routing fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log(`Faucet running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
