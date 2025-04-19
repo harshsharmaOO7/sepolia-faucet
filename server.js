@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // ✅ Serve static files from dist (Vite frontend build output)
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(__dirname));
 
 // ✅ Faucet config (RPC + private key)
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/48b1a4de8f8748e888ab17b21df90dbb");
@@ -38,7 +38,7 @@ app.post('/send', async (req, res) => {
 
 // ✅ Serve index.html for any other route (client-side routing fallback)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ✅ Start server
