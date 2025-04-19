@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import {
   Table,
@@ -10,46 +10,44 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Mock transaction data
-const transactions = [
-  {
-    id: '0x1a2b3c4d5e6f7g8h9i0j',
-    address: '0x1234...5678',
-    amount: '0.05 ETH',
-    timestamp: '2 mins ago',
-    txHash: '0xabcd...ef12'
-  },
-  {
-    id: '0x2b3c4d5e6f7g8h9i0j1a',
-    address: '0x2345...6789',
-    amount: '0.05 ETH',
-    timestamp: '15 mins ago',
-    txHash: '0xbcde...f123'
-  },
-  {
-    id: '0x3c4d5e6f7g8h9i0j1a2b',
-    address: '0x3456...7890',
-    amount: '0.05 ETH',
-    timestamp: '32 mins ago',
-    txHash: '0xcdef...1234'
-  },
-  {
-    id: '0x4d5e6f7g8h9i0j1a2b3c',
-    address: '0x4567...8901',
-    amount: '0.05 ETH',
-    timestamp: '1 hour ago',
-    txHash: '0xdefg...2345'
-  },
-  {
-    id: '0x5e6f7g8h9i0j1a2b3c4d',
-    address: '0x5678...9012',
-    amount: '0.05 ETH',
-    timestamp: '3 hours ago',
-    txHash: '0xefgh...3456'
-  }
-];
+interface Transaction {
+  id: string;
+  address: string;
+  amount: string;
+  timestamp: string;
+  txHash: string;
+}
 
 const Transactions = () => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        // Replace with your API endpoint
+        const response = await fetch('YOUR_API_ENDPOINT/transactions');
+        const data = await response.json();
+        setTransactions(data);
+      } catch (error) {
+        console.error('Failed to fetch transactions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+    
+    // Optional: Set up polling to refresh transactions periodically
+    const interval = setInterval(fetchTransactions, 30000); // every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isLoading) {
+    return <div className="text-center py-8">Loading transactions...</div>;
+  }
+
   return (
     <section id="transactions" className="py-16">
       <div className="container mx-auto px-4 md:px-6">
