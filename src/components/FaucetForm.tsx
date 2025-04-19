@@ -1,69 +1,161 @@
+
 import React, { useState } from 'react';
-import axios from 'axios';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2, AlertCircle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const FaucetForm = () => {
   const [address, setAddress] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!address) {
-      setMessage('Please enter your wallet address');
+      toast({
+        title: "Error",
+        description: "Please enter a valid Ethereum address",
+        variant: "destructive",
+      });
       return;
     }
 
-    setLoading(true);
-    setMessage('');
-
-    try {
-      const res = await axios.post('/api/claim', { address });
-
-      if (res.data && res.data.txHash) {
-        setMessage(`✅ Claimed! TX: ${res.data.txHash}`);
-      } else {
-        setMessage(`❌ ${res.data.message || 'Failed to claim ETH'}`);
-      }
-    } catch (err: any) {
-      setMessage(`❌ ${err.response?.data?.message || err.message}`);
+    if (!captchaVerified) {
+      toast({
+        title: "Error",
+        description: "Please complete the CAPTCHA verification",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setLoading(false);
+    try {
+      setIsLoading(true);
+      
+      // Replace this with your API endpoint
+      const response = await fetch('YOUR_API_ENDPOINT', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to request ETH');
+      }
+
+      toast({
+        title: "Success!",
+        description: "Your request has been processed successfully",
+      });
+      
+      setAddress('');
+      setCaptchaVerified(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to request ETH",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="bg-[#121c2c] p-8 rounded-xl shadow-md max-w-md mx-auto text-white">
-      <h2 className="text-xl font-semibold mb-3">Request Sepolia ETH</h2>
-      <p className="text-sm mb-4">Get up to 0.05 ETH every 24 hours for testing</p>
-
-      <input
-        type="text"
-        placeholder="0x..."
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        className="w-full p-3 rounded-md text-black mb-4"
-      />
-
-      <div className="mb-4">
-        <label className="flex items-center">
-          <input type="checkbox" className="mr-2" />
-          I'm not a robot
-        </label>
+    <Card className="w-full max-w-xl border border-border/60 bg-card/95 backdrop-blur-sm shadow-xl">
+      <CardHeader>
+        <CardTitle className="text-xl md:text-2xl font-bold text-center">
+          Request Sepolia ETH
+        </CardTitle>
+        <CardDescription className="text-center">
+          Get up to 0.05 ETH every 24 hours for testing
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="wallet-address" className="text-sm font-medium">
+              Ethereum Wallet Address
+            </label>
+            <Input
+              id="wallet-address"
+              placeholder="0x..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="bg-background/50 border-border/60 focus:border-primary"
+              spellCheck={false}
+              required
+            />
+          </div>
+          
+          <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="captcha" 
+                checked={captchaVerified}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    // Simulate CAPTCHA verification
+                    setTimeout(() => setCaptchaVerified(true), 500);
+                  } else {
+                    setCaptchaVerified(false);
+                  }
+                }}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="captcha"
+                  className="text-sm font-medium leading-none"
+                >
+                  I'm not a robot
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Complete verification to prevent abuse
+                </p>
+              </div>
+            </div>
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          onClick={handleSubmit}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Request 0.05 Sepolia ETH"
+          )}
+        </Button>
+      </CardFooter>
+      <div className="px-6 pb-6">
+        <div className="flex items-center justify-center text-xs text-muted-foreground gap-1 mt-2">
+          <AlertCircle size={12} />
+          <span>Limited to 1 request per wallet every 24 hours</span>
+        </div>
       </div>
-
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-[#1abc9c] hover:bg-[#16a085] text-white py-2 px-4 rounded-lg w-full font-semibold"
-      >
-        {loading ? 'Claiming...' : 'Request 0.05 Sepolia ETH'}
-      </button>
-
-      {message && <p className="text-sm mt-4 text-center">{message}</p>}
-
-      <p className="text-xs mt-2 text-gray-400 text-center">
-        Limited to 1 request per wallet every 24 hours
-      </p>
-    </div>
+    </Card>
   );
 };
 
