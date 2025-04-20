@@ -23,6 +23,7 @@ const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
+  // Validate address using ethers v6 (for ethers v5, use ethers.utils.isAddress())
   if (!ethers.isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid address' });
   }
@@ -30,16 +31,17 @@ app.post('/send', async (req, res) => {
   try {
     const tx = await wallet.sendTransaction({
       to: address,
-      value: ethers.parseEther("0.05"),
+      value: ethers.parseEther("0.05"), // Ensure you are using ethers.v6 or update for ethers.v5
     });
 
     res.json({ success: true, txHash: tx.hash });
   } catch (err) {
+    console.error("Transaction Error: ", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// For frontend routing
+// For frontend routing (catch-all)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
