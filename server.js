@@ -1,43 +1,43 @@
-
 const express = require('express');
-const { ethers } = require('ethers');
 const path = require('path');
-const app = express();
-const PORT = process.env.PORT || 10000;
+const { ethers } = require('ethers');
+require('dotenv').config();
 
-// JSON body parser
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Serve built frontend (React output from Vite)
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
-// Serve static files from the dist directory (Vite build output)
-app.use(express.static(path.join(__dirname, 'dist')));
+// Faucet logic
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-// Faucet endpoint
-app.post('/api/claim', async (req, res) => {
+app.post('/send', async (req, res) => {
   const { address } = req.body;
-  
-  // Validate Ethereum address
+
   if (!ethers.isAddress(address)) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Invalid Ethereum address" 
-    });
+    return res.status(400).json({ success: false, message: 'Invalid address' });
   }
 
-  // This is where you would implement the actual ETH sending logic
-  // For security reasons, we're not implementing it directly in the server code
-  // You should use environment variables or a secure key management service
-  res.status(501).json({ 
-    success: false, 
-    message: "Faucet functionality requires secure configuration. Please set up private keys securely." 
-  });
+  try {
+    const tx = await wallet.sendTransaction({
+      to: address,
+      value: ethers.parseEther("0.05"),
+    });
+
+    res.json({ success: true, txHash: tx.hash });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
-// For any request that doesn't match a static file or API route, serve index.html
+// For frontend routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`Faucet server running at http://localhost:${PORT}`);
 });
--
