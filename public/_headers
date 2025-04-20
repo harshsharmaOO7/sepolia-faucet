@@ -31,3 +31,11 @@
 
 *.gif
   Content-Type: image/gif
+
+# Add woff2 font type
+*.woff2
+  Content-Type: font/woff2
+
+# Add woff font type  
+*.woff
+  Content-Type: font/woff
