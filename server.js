@@ -5,12 +5,7 @@ const app = express();
 import { ethers } from 'ethers';
 import dotenv from 'dotenv';
 dotenv.config();
-app.use((req, res, next) => {
-  if (req.url.endsWith('.js')) {
-    res.type('application/javascript');
-  }
-  next();
-});
+
 const PORT = process.env.PORT || 3000;
 
 // Setup __dirname equivalent in ESM
