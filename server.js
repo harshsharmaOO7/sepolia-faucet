@@ -1,48 +1,43 @@
+
 const express = require('express');
 const { ethers } = require('ethers');
-require('dotenv').config();
 const path = require('path');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 // JSON body parser
 app.use(express.json());
 
-// ✅ Serve static files from dist (Vite frontend build output)
-app.use(express.static(__dirname));
+// Serve static files from the dist directory (Vite build output)
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// ✅ Faucet config (RPC + private key)
-const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/48b1a4de8f8748e888ab17b21df90dbb");
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
-// ✅ Faucet endpoint
-app.post('/send', async (req, res) => {
+// Faucet endpoint
+app.post('/api/claim', async (req, res) => {
   const { address } = req.body;
-
+  
+  // Validate Ethereum address
   if (!ethers.isAddress(address)) {
-    return res.status(400).json({ success: false, message: "Invalid address" });
-  }
-
-  try {
-    const tx = await wallet.sendTransaction({
-      to: address,
-      value: ethers.parseEther("0.05"),
+    return res.status(400).json({ 
+      success: false, 
+      message: "Invalid Ethereum address" 
     });
-
-    res.json({ success: true, txHash: tx.hash });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
   }
+
+  // This is where you would implement the actual ETH sending logic
+  // For security reasons, we're not implementing it directly in the server code
+  // You should use environment variables or a secure key management service
+  res.status(501).json({ 
+    success: false, 
+    message: "Faucet functionality requires secure configuration. Please set up private keys securely." 
+  });
 });
 
-// ✅ Serve index.html for any other route (client-side routing fallback)
+// For any request that doesn't match a static file or API route, serve index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
-
+-
