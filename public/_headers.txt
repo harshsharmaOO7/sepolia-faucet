@@ -1,0 +1,33 @@
+
+/*
+  Content-Type: text/html; charset=utf-8
+
+*.js
+  Content-Type: application/javascript
+
+*.mjs
+  Content-Type: application/javascript
+
+*.css
+  Content-Type: text/css
+
+*.ico
+  Content-Type: image/x-icon
+
+*.svg
+  Content-Type: image/svg+xml
+
+*.json
+  Content-Type: application/json
+
+*.png
+  Content-Type: image/png
+
+*.jpg
+  Content-Type: image/jpeg
+
+*.jpeg
+  Content-Type: image/jpeg
+
+*.gif
+  Content-Type: image/gif
