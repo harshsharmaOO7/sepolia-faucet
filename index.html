@@ -17,8 +17,12 @@
     <meta name="twitter:site" content="@SepoliaFaucet" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <!-- Updated favicon link with explicit type -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    
+    <!-- Preload critical JavaScript with correct type -->
+    <link rel="modulepreload" href="https://cdn.gpteng.co/gptengineer.js" />
+    <link rel="modulepreload" href="/src/main.tsx" />
   </head>
 
   <body>
@@ -28,3 +32,4 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
