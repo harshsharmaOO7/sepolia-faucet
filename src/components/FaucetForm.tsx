@@ -21,7 +21,7 @@ const FaucetForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!address) {
       toast({
         title: "Error",
@@ -42,43 +42,34 @@ const FaucetForm = () => {
 
     try {
       setIsLoading(true);
-      
-      // Simulate network delay without making an actual API request
-      // This avoids the "Cannot GET /api/claim" error completely
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock successful response
-      if (address.startsWith('0x') && address.length >= 42) {
+
+      // ✅ Send real request to your backend
+      const response = await fetch("/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
         toast({
           title: "Success!",
-          description: "0.05 Sepolia ETH has been sent to your wallet",
+          description: `TX: ${data.txHash}`,
         });
-        
+
         setAddress('');
         setCaptchaVerified(false);
-        
-        // Add transaction to the mock transactions list
-        const mockTx = {
-          id: `0x${Math.random().toString(16).substring(2, 10)}`,
-          address: `${address.substring(0, 6)}...${address.substring(address.length - 4)}`,
-          amount: '0.05 ETH',
-          timestamp: 'Just now',
-          txHash: `0x${Math.random().toString(16).substring(2, 10)}`
-        };
-        
-        // In a real app, you would update the transactions list via an API or state management
-        console.log('New transaction:', mockTx);
       } else {
-        // Mock error for invalid address format
-        throw new Error("Invalid Ethereum address format");
+        throw new Error(data.message || "Transaction failed");
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to request ETH",
+        description: error instanceof Error ? error.message : "Something went wrong",
         variant: "destructive",
       });
-      console.error('Faucet request error:', error);
+      console.error('Faucet error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -110,19 +101,14 @@ const FaucetForm = () => {
               required
             />
           </div>
-          
+
           <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
             <div className="flex items-start space-x-2">
               <Checkbox
-                id="captcha" 
+                id="captcha"
                 checked={captchaVerified}
                 onCheckedChange={(checked) => {
-                  if (checked) {
-                    // Simulate CAPTCHA verification
-                    setTimeout(() => setCaptchaVerified(true), 500);
-                  } else {
-                    setCaptchaVerified(false);
-                  }
+                  setCaptchaVerified(!!checked);
                 }}
               />
               <div className="grid gap-1.5 leading-none">
@@ -141,7 +127,7 @@ const FaucetForm = () => {
         </form>
       </CardContent>
       <CardFooter>
-        <Button 
+        <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={handleSubmit}
           disabled={isLoading}
