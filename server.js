@@ -24,14 +24,14 @@ app.post('/send', async (req, res) => {
   const { address } = req.body;
 
   // Validate address using ethers v6 (for ethers v5, use ethers.utils.isAddress())
-  if (!ethers.isAddress(address)) {
+  if (!isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid address' });
   }
 
   try {
     const tx = await wallet.sendTransaction({
       to: address,
-      value: ethers.parseEther("0.05"), // Ensure you are using ethers.v6 or update for ethers.v5
+      value: parseEther("0.05") // Ensure you are using ethers.v6 or update for ethers.v5
     });
 
     res.json({ success: true, txHash: tx.hash });
