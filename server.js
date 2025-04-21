@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const app = express();
-import { ethers } from 'ethers';
+import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -17,8 +17,8 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
 // Faucet logic
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const provider = new JsonRpcProvider(process.env.RPC_URL);
+const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
 app.post('/send', async (req, res) => {
   const { address } = req.body;
