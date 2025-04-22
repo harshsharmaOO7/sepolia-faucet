@@ -103,37 +103,29 @@ const FaucetForm = () => {
           </div>
 
           <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
-            <div className="flex items-start space-x-2">
-              <Checkbox
-  id="captcha"
-  checked={captchaVerified}
-  disabled={isLoading}
-  onCheckedChange={(checked) => {
-    if (checked) {
-      setCaptchaVerified(false);
-      // Simulate verification delay
-      setIsLoading(true);
-      setTimeout(() => {
-        setCaptchaVerified(true);
-        setIsLoading(false);
-      }, 2000); // 2-second delay
-    } else {
-      setCaptchaVerified(false);
-    }
-  }}
-/>
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="captcha"
-                  className="text-sm font-medium leading-none"
-                >
-                  I'm not a robot
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  Complete verification to prevent abuse
-                </p>
-              </div>
-            </div>
+            <div className="flex items-center space-x-2">
+  <Checkbox
+    id="captcha"
+    checked={captchaVerified}
+    disabled={isLoading}
+    onCheckedChange={(checked) => {
+      if (checked) {
+        setCaptchaVerified(false);
+        setIsLoading(true);
+        setTimeout(() => {
+          setCaptchaVerified(true);
+          setIsLoading(false);
+        }, 2000);
+      } else {
+        setCaptchaVerified(false);
+      }
+    }}
+  />
+  <span className="text-sm font-medium leading-none">I'm not a robot</span>
+  {isLoading && !captchaVerified && (
+    <span className="text-xs text-muted-foreground ml-2">Verifying...</span>
+  )}
+</div>
           </div>
         </form>
       </CardContent>
