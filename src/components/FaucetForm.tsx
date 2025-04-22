@@ -19,6 +19,23 @@ const FaucetForm = () => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const { toast } = useToast();
 
+  // Function to check if the user has already requested in the last 24 hours
+  const checkLastRequest = (address: string) => {
+    const lastRequestTime = localStorage.getItem(address);
+    if (lastRequestTime) {
+      const now = Date.now();
+      const lastRequestTimestamp = parseInt(lastRequestTime, 10);
+      const timeDifference = now - lastRequestTimestamp;
+
+      // 24 hours = 86400000 ms
+      if (timeDifference < 86400000) {
+        const timeLeft = Math.floor((86400000 - timeDifference) / 1000);
+        return timeLeft; // return the remaining time in seconds
+      }
+    }
+    return 0; // Return 0 if no request has been made yet or 24 hours have passed
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -40,6 +57,17 @@ const FaucetForm = () => {
       return;
     }
 
+    const timeLeft = checkLastRequest(address);
+
+    if (timeLeft > 0) {
+      toast({
+        title: "Error",
+        description: `You can request again in ${timeLeft} seconds`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -53,6 +81,9 @@ const FaucetForm = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Save the current timestamp for this address in localStorage
+        localStorage.setItem(address, Date.now().toString());
+
         toast({
           title: "Success!",
           description: `TX: ${data.txHash}`,
@@ -104,28 +135,23 @@ const FaucetForm = () => {
 
           <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
             <div className="flex items-center space-x-2">
-  <Checkbox
-    id="captcha"
-    checked={captchaVerified}
-    disabled={isLoading}
-    onCheckedChange={(checked) => {
-      if (checked) {
-        setCaptchaVerified(false);
-        setIsLoading(true);
-        setTimeout(() => {
-          setCaptchaVerified(true);
-          setIsLoading(false);
-        }, 2000);
-      } else {
-        setCaptchaVerified(false);
-      }
-    }}
-  />
-  <span className="text-sm font-medium leading-none">I'm not a robot</span>
-  {isLoading && !captchaVerified && (
-    <span className="text-xs text-muted-foreground ml-2">Verifying...</span>
-  )}
-</div>
+              <Checkbox
+                id="captcha"
+                checked={captchaVerified}
+                disabled={isLoading}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setCaptchaVerified(true);
+                  } else {
+                    setCaptchaVerified(false);
+                  }
+                }}
+              />
+              <span className="text-sm font-medium leading-none">I'm not a robot</span>
+              {isLoading && !captchaVerified && (
+                <span className="text-xs text-muted-foreground ml-2">Verifying...</span>
+              )}
+            </div>
           </div>
         </form>
       </CardContent>
@@ -133,7 +159,7 @@ const FaucetForm = () => {
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={handleSubmit}
-          disabled={isLoading}
+          disabled={isLoading || !captchaVerified || !address}
         >
           {isLoading ? (
             <>
