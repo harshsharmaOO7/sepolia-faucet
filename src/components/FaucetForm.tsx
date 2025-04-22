@@ -105,12 +105,23 @@ const FaucetForm = () => {
           <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
             <div className="flex items-start space-x-2">
               <Checkbox
-                id="captcha"
-                checked={captchaVerified}
-                onCheckedChange={(checked) => {
-                  setCaptchaVerified(!!checked);
-                }}
-              />
+  id="captcha"
+  checked={captchaVerified}
+  disabled={isLoading}
+  onCheckedChange={(checked) => {
+    if (checked) {
+      setCaptchaVerified(false);
+      // Simulate verification delay
+      setIsLoading(true);
+      setTimeout(() => {
+        setCaptchaVerified(true);
+        setIsLoading(false);
+      }, 2000); // 2-second delay
+    } else {
+      setCaptchaVerified(false);
+    }
+  }}
+/>
               <div className="grid gap-1.5 leading-none">
                 <label
                   htmlFor="captcha"
