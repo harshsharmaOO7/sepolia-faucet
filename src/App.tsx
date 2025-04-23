@@ -13,9 +13,9 @@ function App() {
       <Header />
       <Hero />
       <AdBanner />
+      <Transactions />
       <HowItWorks />
       <FAQ />
-      <Transactions />
       <Footer />
     </>
   );
