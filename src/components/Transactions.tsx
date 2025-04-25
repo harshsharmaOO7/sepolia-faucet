@@ -25,8 +25,11 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        // Replace with your API endpoint
-        const res = await fetch('https://sepolia-faucet-ki2h.onrender.com/api/recent');
+        // Using the local API endpoint
+        const response = await fetch('/api/transactions');
+        if (!response.ok) {
+          throw new Error('Failed to fetch transactions');
+        }
         const data = await response.json();
         setTransactions(data);
       } catch (error) {
@@ -57,36 +60,40 @@ const Transactions = () => {
         
         <div className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead className="text-right">Transaction</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className="font-mono">{tx.address}</TableCell>
-                    <TableCell>{tx.amount}</TableCell>
-                    <TableCell>{tx.timestamp}</TableCell>
-                    <TableCell className="text-right">
-                      <a
-                        href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-                      >
-                        {tx.txHash.substring(0, 6)}...{tx.txHash.substring(tx.txHash.length - 4)}
-                        <ExternalLink size={14} className="ml-1" />
-                      </a>
-                    </TableCell>
+            {transactions.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead className="text-right">Transaction</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell className="font-mono">{tx.address}</TableCell>
+                      <TableCell>{tx.amount}</TableCell>
+                      <TableCell>{tx.timestamp}</TableCell>
+                      <TableCell className="text-right">
+                        <a
+                          href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+                        >
+                          {tx.txHash.substring(0, 6)}...{tx.txHash.substring(tx.txHash.length - 4)}
+                          <ExternalLink size={14} className="ml-1" />
+                        </a>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8">No transactions yet</div>
+            )}
           </div>
         </div>
         
