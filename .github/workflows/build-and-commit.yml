@@ -3,33 +3,32 @@ name: Build and Commit Dist Folder
 on:
   push:
     branches:
-      - main  # or your branch name
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Build the project
-      run: npm run build
+      - name: Build the project
+        run: npm run build
 
-    - name: Commit and push dist folder
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add dist
-        git commit -m "Update dist folder [CI skip]" || echo "No changes to commit"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push dist folder
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist
+          git commit -m "Update dist folder [CI skip]" || echo "No changes to commit"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/harshsharmaOO7/sepolia-faucet.git
+          git push
