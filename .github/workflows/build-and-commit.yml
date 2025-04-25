@@ -3,7 +3,7 @@ name: Build and Commit Dist Folder
 on:
   push:
     branches:
-      - main
+      - main  # or your branch name
 
 jobs:
   build:
@@ -25,12 +25,11 @@ jobs:
       run: npm run build
 
     - name: Commit and push dist folder
-      env:
-        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
-        git config user.name "Harsh Sharma"
+        git config user.name "harshsharmaOO7"
         git config user.email "hs6925152@gmail.com"
-        git remote set-url origin https://harshsharma_oo7:${GH_PAT}@github.com/harshsharmaOO7/sepolia-faucet.git
         git add dist
         git commit -m "Update dist folder [CI skip]" || echo "No changes to commit"
-        git push origin main
+        git push https://github.com/harshsharmaOO7/sepolia-faucet.git HEAD:main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
