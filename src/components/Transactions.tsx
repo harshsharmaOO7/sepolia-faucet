@@ -9,14 +9,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Transaction {
-  id: string;
-  address: string;
-  amount: string;
-  timestamp: string;
-  txHash: string;
+  wallet_address: string;
+  tx_hash: string;
+  created_at: string;
 }
 
 const Transactions = () => {
@@ -27,19 +25,16 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      console.log('Fetching transactions from mock API...');
       setIsRefreshing(true);
-      
-      const response = await fetch('/api/transactions');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch transactions');
-      }
-      
+
+      const response = await fetch('/transactions'); // ✅ Correct endpoint (not /api/transactions)
       const data = await response.json();
-      console.log('Transactions data received:', data);
-      
-      setTransactions(data);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch transactions');
+      }
+
+      setTransactions(data.transactions);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -55,10 +50,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-    
-    // Optional: Set up polling to refresh transactions periodically
-    const interval = setInterval(fetchTransactions, 30000); // every 30 seconds
-    
+    const interval = setInterval(fetchTransactions, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -103,25 +95,27 @@ const Transactions = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Address</TableHead>
-                    <TableHead>Amount</TableHead>
                     <TableHead>Time</TableHead>
                     <TableHead className="text-right">Transaction</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="font-mono">{tx.address}</TableCell>
-                      <TableCell>{tx.amount}</TableCell>
-                      <TableCell>{tx.timestamp}</TableCell>
+                  {transactions.map((tx, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-mono">
+                        {tx.wallet_address.substring(0, 6)}...{tx.wallet_address.slice(-4)}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(tx.created_at).toLocaleString()}
+                      </TableCell>
                       <TableCell className="text-right">
                         <a
-                          href={`https://sepolia.etherscan.io/tx/${tx.txHash}`}
+                          href={`https://sepolia.etherscan.io/tx/${tx.tx_hash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
                         >
-                          {tx.txHash.substring(0, 6)}...{tx.txHash.substring(tx.txHash.length - 4)}
+                          {tx.tx_hash.substring(0, 6)}...{tx.tx_hash.slice(-4)}
                           <ExternalLink size={14} className="ml-1" />
                         </a>
                       </TableCell>
