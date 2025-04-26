@@ -27,16 +27,16 @@ const Transactions = () => {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch('/transactions'); // Correct endpoint, change if needed
+      const response = await fetch('/transactions'); // Ensure this is the correct endpoint
       const data = await response.json();
 
       console.log('Fetched Data:', data); // Log the fetched data to ensure it's structured as expected
 
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch transactions');
+      if (!data || !data.transactions) {
+        throw new Error('No transactions found or invalid data format');
       }
 
-      setTransactions(data.transactions || []); // Ensure we set empty array if no transactions are found
+      setTransactions(data.transactions); // Update state with the fetched transactions
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -92,7 +92,7 @@ const Transactions = () => {
 
         <div className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            {transactions.length > 0 ? (
+            {transactions && transactions.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
