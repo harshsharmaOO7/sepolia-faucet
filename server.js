@@ -24,6 +24,7 @@ app.use(express.json());
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
+// POST /send => Request Sepolia ETH
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
@@ -32,7 +33,7 @@ app.post('/send', async (req, res) => {
   }
 
   try {
-    // Check if this wallet has already requested in the last 24 hours
+    // Check if wallet already requested in the last 24 hours
     const { data, error } = await supabase
       .from('wallets')
       .select('created_at')
@@ -61,10 +62,10 @@ app.post('/send', async (req, res) => {
       value: parseEther("0.05"),
     });
 
-    // Save the request to Supabase
+    // Save request in Supabase (wallet address + txHash)
     const { error: insertError } = await supabase
       .from('wallets')
-      .insert([{ wallet_address: address }]);
+      .insert([{ wallet_address: address, tx_hash: tx.hash }]);
 
     if (insertError) {
       console.error("Supabase insert error:", insertError);
@@ -78,11 +79,33 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// For frontend routing
+// ✅ GET /transactions => Recent 10 Transactions
+app.get('/transactions', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('wallets')
+      .select('wallet_address, tx_hash, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error('Supabase transactions error:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    res.json({ success: true, transactions: data });
+  } catch (err) {
+    console.error('Transaction fetch error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Frontend fallback (React router fallback)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Faucet server running at http://localhost:${PORT}`);
 });
