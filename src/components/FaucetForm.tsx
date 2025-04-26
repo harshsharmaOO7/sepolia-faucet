@@ -19,21 +19,19 @@ const FaucetForm = () => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const { toast } = useToast();
 
-  // Function to check if the user has already requested in the last 24 hours
+  // Function to check last request time for an address
   const checkLastRequest = (address: string) => {
-    const lastRequestTime = localStorage.getItem(address);
-    if (lastRequestTime) {
+    const lastRequest = localStorage.getItem(address);
+    if (lastRequest) {
+      const lastTime = parseInt(lastRequest, 10);
       const now = Date.now();
-      const lastRequestTimestamp = parseInt(lastRequestTime, 10);
-      const timeDifference = now - lastRequestTimestamp;
-
-      // 24 hours = 86400000 ms
-      if (timeDifference < 86400000) {
-        const timeLeft = Math.floor((86400000 - timeDifference) / 1000);
-        return timeLeft; // return the remaining time in seconds
+      const diff = now - lastTime;
+      if (diff < 86400000) { // 24 hours = 86400000 ms
+        const secondsLeft = Math.floor((86400000 - diff) / 1000);
+        return secondsLeft;
       }
     }
-    return 0; // Return 0 if no request has been made yet or 24 hours have passed
+    return 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,11 +56,11 @@ const FaucetForm = () => {
     }
 
     const timeLeft = checkLastRequest(address);
-
     if (timeLeft > 0) {
+      const minutes = Math.floor(timeLeft / 60);
       toast({
-        title: "Error",
-        description: `You can request again in ${timeLeft} seconds`,
+        title: "Warning",
+        description: `Already requested! Try again in ${minutes} minutes.`,
         variant: "destructive",
       });
       return;
@@ -71,7 +69,6 @@ const FaucetForm = () => {
     try {
       setIsLoading(true);
 
-      // ✅ Send real request to your backend
       const response = await fetch("/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,20 +77,27 @@ const FaucetForm = () => {
 
       const data = await response.json();
 
-      if (data.success) {
-        // Save the current timestamp for this address in localStorage
-        localStorage.setItem(address, Date.now().toString());
+      if (response.status === 429) {
+        toast({
+          title: "Warning",
+          description: "You have already claimed ETH. Try again after 24 hours.",
+          variant: "destructive",
+        });
+        return;
+      }
 
+      if (data.success) {
+        localStorage.setItem(address, Date.now().toString());
         toast({
           title: "Success!",
-          description: `TX: ${data.txHash}`,
+          description: `Transaction sent! TX Hash: ${data.txHash}`,
         });
-
         setAddress('');
         setCaptchaVerified(false);
       } else {
         throw new Error(data.message || "Transaction failed");
       }
+
     } catch (error) {
       toast({
         title: "Error",
@@ -116,6 +120,7 @@ const FaucetForm = () => {
           Get up to 0.05 ETH every 24 hours for testing
         </CardDescription>
       </CardHeader>
+
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -140,11 +145,7 @@ const FaucetForm = () => {
                 checked={captchaVerified}
                 disabled={isLoading}
                 onCheckedChange={(checked) => {
-                  if (checked) {
-                    setCaptchaVerified(true);
-                  } else {
-                    setCaptchaVerified(false);
-                  }
+                  setCaptchaVerified(!!checked);
                 }}
               />
               <span className="text-sm font-medium leading-none">I'm not a robot</span>
@@ -155,6 +156,7 @@ const FaucetForm = () => {
           </div>
         </form>
       </CardContent>
+
       <CardFooter>
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -171,6 +173,7 @@ const FaucetForm = () => {
           )}
         </Button>
       </CardFooter>
+
       <div className="px-6 pb-6">
         <div className="flex items-center justify-center text-xs text-muted-foreground gap-1 mt-2">
           <AlertCircle size={12} />
