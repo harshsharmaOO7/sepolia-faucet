@@ -6,6 +6,7 @@ import Transactions from "./components/Transactions";
 import HowItWorks from "./components/HowItWorks";
 import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
+import { Toaster } from "@/components/ui/toaster";  // ✅ Import Toaster
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <HowItWorks />
       <FAQ />
       <Footer />
+      <Toaster /> {/* ✅ Add Toaster here */}
     </>
   );
 }
