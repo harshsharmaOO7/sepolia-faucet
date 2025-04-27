@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, RefreshCw } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient('https://npgojsqtobjizdbcxwgq.supabase.co', 'public-anon-key'); // Replace with your Supabase URL and key
 
 interface Transaction {
   wallet_address: string;
   tx_hash: string;
   created_at: string;
+  from: string;
+  to: string;
+  timeStamp: number;
 }
 
 const Transactions = () => {
@@ -22,24 +21,52 @@ const Transactions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+  const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Your wallet address
+  const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB'; // Your Etherscan API key
 
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
 
-      const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Your wallet address
-      const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB'; // Your API key
+      // Fetch wallet request timestamp from Supabase
+      const { data, error } = await supabase
+        .from('wallet_requests') // Your Supabase table name
+        .select('last_requested_at')
+        .eq('wallet_address', walletAddress)
+        .single();
 
-      // Construct API URL for Sepolia network
-      const response = await fetch(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`);
-
-      const data = await response.json();
-      console.log('Fetched Data:', data);
-
-      if (data.status === '1' && Array.isArray(data.result)) {
-        setTransactions(data.result);
+      if (error) {
+        console.error('Error fetching last request data:', error);
       } else {
-        throw new Error(data.message || 'No transactions found');
+        // Check if the last request was within the last 24 hours
+        const lastRequestedAt = new Date(data?.last_requested_at);
+        const now = new Date();
+        const diffInHours = (now.getTime() - lastRequestedAt.getTime()) / (1000 * 3600);
+
+        if (diffInHours < 24) {
+          toast({
+            title: "Error",
+            description: "You can only request once every 24 hours.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Fetch transaction history
+      const response = await fetch(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`);
+      const dataTx = await response.json();
+      console.log('Fetched Data:', dataTx);
+
+      if (dataTx.status === '1' && Array.isArray(dataTx.result)) {
+        // Filter only transactions where the wallet is either the sender or receiver
+        const filteredTransactions = dataTx.result.filter((tx: any) =>
+          tx.from.toLowerCase() === walletAddress.toLowerCase() || tx.to.toLowerCase() === walletAddress.toLowerCase()
+        );
+        setTransactions(filteredTransactions);
+      } else {
+        throw new Error(dataTx.message || 'No transactions found');
       }
 
       setIsLoading(false);
@@ -101,16 +128,20 @@ const Transactions = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Address</TableHead>
+                    <TableHead>Receiver Address</TableHead>
                     <TableHead>Time</TableHead>
-                    <TableHead className="text-right">Transaction</TableHead>
+                    <TableHead className="text-right">Transaction Hash</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {transactions.map((tx, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono">
-                        {tx.from.substring(0, 6)}...{tx.from.slice(-4)}
+                        {/* Display receiver address (to) */}
+                        {tx.to.toLowerCase() === walletAddress.toLowerCase() 
+                          ? `${tx.to.substring(0, 6)}...${tx.to.slice(-4)}`
+                          : `${tx.from.substring(0, 6)}...${tx.from.slice(-4)}`
+                        }
                       </TableCell>
                       <TableCell>
                         {new Date(tx.timeStamp * 1000).toLocaleString()}
@@ -122,7 +153,7 @@ const Transactions = () => {
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
                         >
-                          {tx.hash.substring(0, 6)}...{tx.hash.slice(-4)}
+                          {tx.hash}
                           <ExternalLink size={14} className="ml-1" />
                         </a>
                       </TableCell>
