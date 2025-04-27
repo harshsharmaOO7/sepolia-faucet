@@ -27,13 +27,20 @@ const Transactions = () => {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch('https://npgojsqtobjizdbcxwgq.supabase.co/rest/v1/wallets', {
+      const response = await fetch('https://npgojsqtobjizdbcxwgq.supabase.co/rest/v1/wallets?select=*', {
+        method: 'GET',
         headers: {
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y',
           'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
       });
+
+      // Check if the response is successful (HTTP status 200)
+      if (!response.ok) {
+        throw new Error('Error fetching transactions');
+      }
 
       const data = await response.json();
       console.log('Fetched Data:', data);
