@@ -138,7 +138,7 @@ const Transactions = () => {
                     <TableRow key={index}>
                       <TableCell className="font-mono">
                         {/* Display receiver address for outgoing transactions */}
-                        {tx.to.toLowerCase() === walletAddress.toLowerCase() 
+                        {tx.to.toLowerCase() !== walletAddress.toLowerCase() 
                           ? `${tx.to.substring(0, 6)}...${tx.to.slice(-4)}`
                           : null 
                         }
