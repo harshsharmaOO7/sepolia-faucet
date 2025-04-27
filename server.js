@@ -4,37 +4,41 @@ import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Setup __dirname in ESM
+// Setup __dirname (since you are using ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Supabase
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
-// Serve static files (dist folder)
+// Serve static files from dist/
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
-// Faucet setup
+// Setup Ethers wallet
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
-// POST /send => Request Sepolia ETH
+// POST /send => Send Sepolia ETH
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
   if (!isAddress(address)) {
-    return res.status(400).json({ success: false, message: 'Invalid Ethereum address' });
+    return res.status(400).json({ success: false, message: 'Invalid Ethereum address.' });
   }
 
   try {
-    // Check if wallet already requested in the last 24 hours
-    const { data, error } = await supabase
+    // Check if this address already requested in last 24 hours
+    const { data: previous, error } = await supabase
       .from('wallets')
       .select('created_at')
       .eq('wallet_address', address)
@@ -42,45 +46,45 @@ app.post('/send', async (req, res) => {
       .limit(1);
 
     if (error) {
-      console.error("Supabase select error:", error);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+      console.error('Supabase select error:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
-    if (data && data.length > 0) {
-      const lastRequestTime = new Date(data[0].created_at);
+    if (previous && previous.length > 0) {
+      const lastRequestTime = new Date(previous[0].created_at);
       const now = new Date();
-      const timeDiff = (now.getTime() - lastRequestTime.getTime()) / (1000 * 60 * 60); // hours
+      const hoursPassed = (now.getTime() - lastRequestTime.getTime()) / (1000 * 60 * 60);
 
-      if (timeDiff < 24) {
-        return res.status(429).json({ success: false, message: "You can request only once every 24 hours." });
+      if (hoursPassed < 24) {
+        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours.' });
       }
     }
 
-    // Send ETH
+    // Send 0.05 Sepolia ETH
     const tx = await wallet.sendTransaction({
       to: address,
-      value: parseEther("0.05"),
+      value: parseEther('0.05'),
     });
 
-    // Save request in Supabase (wallet address + txHash)
+    // Save request to Supabase
     const { error: insertError } = await supabase
       .from('wallets')
       .insert([{ wallet_address: address, tx_hash: tx.hash }]);
 
     if (insertError) {
-      console.error("Supabase insert error:", insertError);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+      console.error('Supabase insert error:', insertError);
+      return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
     res.json({ success: true, txHash: tx.hash });
   } catch (err) {
-    console.error("Transaction Error:", err);
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Transaction error:', err);
+    res.status(500).json({ success: false, message: 'Transaction failed.' });
   }
 });
 
-// ✅ GET /transactions => Recent 10 Transactions
-app.get('/transactions', async (req, res) => {
+// ✅ GET /api/transactions => Fetch recent 10 transactions
+app.get('/api/transactions', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('wallets')
@@ -89,23 +93,32 @@ app.get('/transactions', async (req, res) => {
       .limit(10);
 
     if (error) {
-      console.error('Supabase transactions error:', error);
-      return res.status(500).json({ success: false, message: error.message });
+      console.error('Supabase fetch error:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
-    res.json({ success: true, transactions: data });
+    // Transform data for frontend
+    const transactions = data.map((tx) => ({
+      id: tx.tx_hash,
+      address: tx.wallet_address,
+      amount: '0.05 ETH',
+      timestamp: new Date(tx.created_at).toLocaleString(),
+      txHash: tx.tx_hash,
+    }));
+
+    res.json(transactions);
   } catch (err) {
     console.error('Transaction fetch error:', err);
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: 'Failed to load transactions.' });
   }
 });
 
-// Frontend fallback (React router fallback)
+// Catch-all: serve frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Faucet server running at http://localhost:${PORT}`);
+  console.log(`✅ Faucet server running at http://localhost:${PORT}`);
 });
