@@ -84,7 +84,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-    const interval = setInterval(fetchTransactions, 30000);
+    const interval = setInterval(fetchTransactions, 10000);
     return () => clearInterval(interval);
   }, []);
 
