@@ -27,7 +27,7 @@ const Transactions = () => {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch('https://sepolia-faucet-ki2h.onrender.com/transactions');
+      const response = await fetch('https://npgojsqtobjizdbcxwgq.supabase.co');
       const data = await response.json();
 
       console.log('Fetched Data:', data);
