@@ -23,34 +23,32 @@ const Transactions = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
+  const ETHERSCAN_API_KEY = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB';  // Your Etherscan API Key
+  const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Updated wallet address
+
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
-
-      const response = await fetch('https://npgojsqtobjizdbcxwgq.supabase.co/rest/v1/wallets?select=*', {
-        method: 'GET',
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-
-      // Check if the response is successful (HTTP status 200)
-      if (!response.ok) {
-        throw new Error('Error fetching transactions');
-      }
-
+      
+      // Fetch the transactions using Etherscan's txlist API
+      const response = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${ETHERSCAN_API_KEY}`);
+      
       const data = await response.json();
       console.log('Fetched Data:', data);
 
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid response format');
+      if (data.status === "1" && Array.isArray(data.result)) {
+        // Map the data into the format you need
+        const formattedTransactions = data.result.map((tx: any) => ({
+          wallet_address: tx.from, 
+          tx_hash: tx.hash,
+          created_at: new Date(Number(tx.timeStamp) * 1000).toLocaleString(),
+        }));
+        
+        setTransactions(formattedTransactions);
+        setIsLoading(false);
+      } else {
+        throw new Error('Failed to fetch transactions');
       }
-
-      setTransactions(data);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast({
@@ -65,7 +63,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-    const interval = setInterval(fetchTransactions, 30000);
+    const interval = setInterval(fetchTransactions, 30000);  // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -121,7 +119,7 @@ const Transactions = () => {
                         {tx.wallet_address.substring(0, 6)}...{tx.wallet_address.slice(-4)}
                       </TableCell>
                       <TableCell>
-                        {new Date(tx.created_at).toLocaleString()}
+                        {tx.created_at}
                       </TableCell>
                       <TableCell className="text-right">
                         <a
