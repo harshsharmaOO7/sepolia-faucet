@@ -29,20 +29,20 @@ const Transactions = () => {
 
       const response = await fetch('https://npgojsqtobjizdbcxwgq.supabase.co/rest/v1/transactions', {
         headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y',
           'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y`,
           'Content-Type': 'application/json',
         },
       });
 
       const data = await response.json();
-
       console.log('Fetched Data:', data);
 
-      if (!data.success || !data.transactions) {
-        throw new Error('No transactions found or invalid response format');
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format');
       }
 
-      setTransactions(data.transactions);
+      setTransactions(data);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -58,7 +58,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-    const interval = setInterval(fetchTransactions, 30000); // Fetch every 30 seconds
+    const interval = setInterval(fetchTransactions, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -84,10 +84,10 @@ const Transactions = () => {
           <h2 className="text-xl md:text-2xl font-bold">
             Recent <span className="gradient-text">Transactions</span>
           </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
             disabled={isRefreshing}
             className="gap-1"
           >
@@ -138,9 +138,9 @@ const Transactions = () => {
         </div>
 
         <div className="mt-4 text-center">
-          <a
-            href="https://sepolia.etherscan.io"
-            target="_blank"
+          <a 
+            href="https://sepolia.etherscan.io" 
+            target="_blank" 
             rel="noopener noreferrer"
             className="text-primary hover:text-primary/80 text-sm inline-flex items-center transition-colors"
           >
