@@ -23,32 +23,26 @@ const Transactions = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
-  const ETHERSCAN_API_KEY = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB';  // Your Etherscan API Key
-  const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Updated wallet address
-
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
-      
-      // Fetch the transactions using Etherscan's txlist API
-      const response = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${ETHERSCAN_API_KEY}`);
-      
+
+      const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Your wallet address
+      const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB'; // Your API key
+
+      // Construct API URL for Sepolia network
+      const response = await fetch(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`);
+
       const data = await response.json();
       console.log('Fetched Data:', data);
 
-      if (data.status === "1" && Array.isArray(data.result)) {
-        // Map the data into the format you need
-        const formattedTransactions = data.result.map((tx: any) => ({
-          wallet_address: tx.from, 
-          tx_hash: tx.hash,
-          created_at: new Date(Number(tx.timeStamp) * 1000).toLocaleString(),
-        }));
-        
-        setTransactions(formattedTransactions);
-        setIsLoading(false);
+      if (data.status === '1' && Array.isArray(data.result)) {
+        setTransactions(data.result);
       } else {
-        throw new Error('Failed to fetch transactions');
+        throw new Error(data.message || 'No transactions found');
       }
+
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast({
@@ -63,7 +57,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-    const interval = setInterval(fetchTransactions, 30000);  // Refresh every 30 seconds
+    const interval = setInterval(fetchTransactions, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -116,19 +110,19 @@ const Transactions = () => {
                   {transactions.map((tx, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono">
-                        {tx.wallet_address.substring(0, 6)}...{tx.wallet_address.slice(-4)}
+                        {tx.from.substring(0, 6)}...{tx.from.slice(-4)}
                       </TableCell>
                       <TableCell>
-                        {tx.created_at}
+                        {new Date(tx.timeStamp * 1000).toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <a
-                          href={`https://sepolia.etherscan.io/tx/${tx.tx_hash}`}
+                          href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
                         >
-                          {tx.tx_hash.substring(0, 6)}...{tx.tx_hash.slice(-4)}
+                          {tx.hash.substring(0, 6)}...{tx.hash.slice(-4)}
                           <ExternalLink size={14} className="ml-1" />
                         </a>
                       </TableCell>
