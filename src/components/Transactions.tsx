@@ -27,16 +27,17 @@ const Transactions = () => {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch('/transactions'); // Ensure this is the correct endpoint
+      const response = await fetch('/transactions');
       const data = await response.json();
 
-      console.log('Fetched Data:', data); // Log the fetched data to ensure it's structured as expected
+      console.log('Fetched Data:', data);
 
-      if (!data || !data.transactions) {
-        throw new Error('No transactions found or invalid data format');
+      // ✅ Check if API call was successful
+      if (!data.success || !data.transactions) {
+        throw new Error('No transactions found or invalid response format');
       }
 
-      setTransactions(data.transactions); // Update state with the fetched transactions
+      setTransactions(data.transactions);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -51,13 +52,13 @@ const Transactions = () => {
   };
 
   useEffect(() => {
-    fetchTransactions(); // Fetch transactions initially
-    const interval = setInterval(fetchTransactions, 30000); // Re-fetch every 30 seconds
-    return () => clearInterval(interval); // Clear interval on component unmount
+    fetchTransactions(); // Fetch initially
+    const interval = setInterval(fetchTransactions, 30000); // Auto refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
-    fetchTransactions(); // Manually refresh transactions
+    fetchTransactions(); // Manual refresh
   };
 
   if (isLoading) {
@@ -92,7 +93,7 @@ const Transactions = () => {
 
         <div className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            {transactions && transactions.length > 0 ? (
+            {transactions.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
