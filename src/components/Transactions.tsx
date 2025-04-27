@@ -27,12 +27,11 @@ const Transactions = () => {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch('/transactions');
+      const response = await fetch('https://sepolia-faucet-ki2h.onrender.com/transactions');
       const data = await response.json();
 
       console.log('Fetched Data:', data);
 
-      // ✅ Check if API call was successful
       if (!data.success || !data.transactions) {
         throw new Error('No transactions found or invalid response format');
       }
@@ -52,13 +51,13 @@ const Transactions = () => {
   };
 
   useEffect(() => {
-    fetchTransactions(); // Fetch initially
-    const interval = setInterval(fetchTransactions, 30000); // Auto refresh every 30s
+    fetchTransactions();
+    const interval = setInterval(fetchTransactions, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
-    fetchTransactions(); // Manual refresh
+    fetchTransactions();
   };
 
   if (isLoading) {
