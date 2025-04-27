@@ -60,9 +60,9 @@ const Transactions = () => {
       console.log('Fetched Data:', dataTx);
 
       if (dataTx.status === '1' && Array.isArray(dataTx.result)) {
-        // Filter only transactions where the wallet is either the sender or receiver
+        // Filter only transactions where the wallet is the sender (outgoing transactions)
         const filteredTransactions = dataTx.result.filter((tx: any) =>
-          tx.from.toLowerCase() === walletAddress.toLowerCase() || tx.to.toLowerCase() === walletAddress.toLowerCase()
+          tx.from.toLowerCase() === walletAddress.toLowerCase() // Outgoing transactions
         );
         setTransactions(filteredTransactions);
       } else {
@@ -108,7 +108,7 @@ const Transactions = () => {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl md:text-2xl font-bold">
-            Recent <span className="gradient-text">Transactions</span>
+            Recent <span className="gradient-text">Outgoing Transactions</span>
           </h2>
           <Button 
             variant="outline" 
@@ -137,10 +137,10 @@ const Transactions = () => {
                   {transactions.map((tx, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono">
-                        {/* Display receiver address (to) */}
+                        {/* Display receiver address for outgoing transactions */}
                         {tx.to.toLowerCase() === walletAddress.toLowerCase() 
                           ? `${tx.to.substring(0, 6)}...${tx.to.slice(-4)}`
-                          : `${tx.from.substring(0, 6)}...${tx.from.slice(-4)}`
+                          : null 
                         }
                       </TableCell>
                       <TableCell>
@@ -162,7 +162,7 @@ const Transactions = () => {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-8">No transactions yet</div>
+              <div className="text-center py-8">No outgoing transactions yet</div>
             )}
           </div>
         </div>
