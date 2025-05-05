@@ -62,8 +62,8 @@ const Transactions = () => {
       if (dataTx.status === '1' && Array.isArray(dataTx.result)) {
         // Filter only transactions where the wallet is the sender (outgoing transactions)
         const filteredTransactions = dataTx.result.filter((tx: any) =>
-          tx.from.toLowerCase() === walletAddress.toLowerCase() // Outgoing transactions
-        );
+          tx.from.toLowerCase() === walletAddress.toLowerCase()) // Outgoing transactions
+        .slice(0, 5);
         setTransactions(filteredTransactions);
       } else {
         throw new Error(dataTx.message || 'No transactions found');
