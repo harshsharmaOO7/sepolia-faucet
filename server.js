@@ -123,8 +123,14 @@ app.get('/api/transactions', async (req, res) => {
 });
 
 // Catch-all: serve frontend
-app.get('*', (req, res) => {
+// Serve frontend only for known static paths or root
+app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// 404 handler for all other routes
+app.use((req, res) => {
+  res.status(404).send('404 - Page Not Found');
 });
 
 // Start server
