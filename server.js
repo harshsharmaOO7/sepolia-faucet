@@ -8,6 +8,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
+// Redirect www to non-www
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  if (host.startsWith('www.')) {
+    const newHost = host.replace(/^www\./, '');  // Remove 'www.' from the host
+    return res.redirect(301, `https://${newHost}${req.url}`);  // Redirect to non-www version
+  }
+  next();
+});
 const PORT = process.env.PORT || 3000;
 
 // Setup __dirname (since you are using ESM)
