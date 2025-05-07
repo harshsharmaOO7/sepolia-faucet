@@ -22,5 +22,17 @@ export default defineConfig(async ({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 1000, // 🔧 Increased from 500 KB to 1000 KB
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              return "vendor"; // 🔧 Groups all dependencies into "vendor"
+            }
+          },
+        },
+      },
+    },
   };
 });
