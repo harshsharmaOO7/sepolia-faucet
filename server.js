@@ -3,12 +3,29 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
-import dotenv from 'dotenv';
-import rateLimit from 'express-rate-limit'; // NEW
+import rateLimit from 'express-rate-limit';
 
-dotenv.config();
+// Load .env only in development
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv = await import('dotenv');
+  dotenv.config();
+}
 
 const app = express();
+
+// Debug: Print envs once (remove this after confirming it's correct)
+console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "missing");
+console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "missing");
+
+const PORT = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 // Redirect www to non-www
 app.use((req, res, next) => {
@@ -20,59 +37,44 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = process.env.PORT || 3000;
-
-// Setup __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
+// Serve sitemap
 app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml');
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
-// Serve static files from dist/
+// Serve static files and parse JSON
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
-// Setup Ethers wallet
+// Wallet and provider
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
-// NEW: Rate limit - max 3 requests per IP per 24 hours
+// Rate limit: 3 req/IP/day
 const faucetLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 3,
-  keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  },
+  keyGenerator: (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress,
   message: { success: false, message: 'Too many requests from this IP. Try again in 24 hours.' }
 });
 app.use('/send', faucetLimiter);
 
-// POST /send => Send Sepolia ETH
+// POST /send
 app.post('/send', async (req, res) => {
   const { address } = req.body;
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // NEW
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   if (!isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid Ethereum address.' });
   }
 
   try {
-    // NEW: Check faucet balance
     const balance = await wallet.getBalance();
     if (balance.lt(parseEther('0.1'))) {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
     }
 
-    // Check if this address already requested in last 24 hours
     const { data: previous, error } = await supabase
       .from('wallets')
       .select('created_at')
@@ -94,20 +96,14 @@ app.post('/send', async (req, res) => {
       }
     }
 
-    // Send 0.05 Sepolia ETH
     const tx = await wallet.sendTransaction({
       to: address,
       value: parseEther('0.05'),
     });
 
-    // Save request to Supabase
     const { error: insertError } = await supabase
       .from('wallets')
-      .insert([{
-        wallet_address: address,
-        tx_hash: tx.hash,
-        ip_address: ip // NEW: Log IP
-      }]);
+      .insert([{ wallet_address: address, tx_hash: tx.hash, ip_address: ip }]);
 
     if (insertError) {
       console.error('Supabase insert error:', insertError);
@@ -121,7 +117,7 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// GET /api/transactions => Fetch recent 10 transactions
+// GET /api/transactions
 app.get('/api/transactions', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -150,7 +146,7 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
-// Serve frontend for root/index
+// Serve frontend
 app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
