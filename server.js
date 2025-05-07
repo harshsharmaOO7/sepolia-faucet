@@ -32,6 +32,11 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
 // Serve static files from dist/
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
