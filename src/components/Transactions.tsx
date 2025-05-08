@@ -20,20 +20,23 @@ interface Transaction {
   hash: string;
 }
 
-const Transactions = () => {
+interface Props {
+  walletAddress: string;
+}
+
+const Transactions: React.FC<Props> = ({ walletAddress }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
-  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051';
   const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB';
 
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
 
-      // Fetch latest request timestamp from Supabase
+      // Check last request from this wallet
       const { data: lastRequest, error } = await supabase
         .from('wallets')
         .select('created_at')
@@ -43,7 +46,7 @@ const Transactions = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching request timestamp:', error);
+        console.error('Error fetching last request:', error);
       } else if (lastRequest) {
         const lastRequestedAt = new Date(lastRequest.created_at);
         const now = new Date();
@@ -60,7 +63,16 @@ const Transactions = () => {
         }
       }
 
-      // Fetch transaction history
+      // Insert new request record
+      const { error: insertError } = await supabase
+        .from('wallets')
+        .insert([{ wallet_address: walletAddress }]);
+
+      if (insertError) {
+        console.error('Error inserting new request:', insertError);
+      }
+
+      // Fetch outgoing transactions
       const response = await fetch(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`);
       const dataTx = await response.json();
 
@@ -95,7 +107,7 @@ const Transactions = () => {
     fetchTransactions();
     const interval = setInterval(fetchTransactions, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [walletAddress]);
 
   const handleRefresh = () => {
     fetchTransactions();
