@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
-import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
+import { JsonRpcProvider, Wallet, isAddress, parseUnits } from 'ethers';
 
 // Load environment variables in development
 if (process.env.NODE_ENV !== 'production') {
@@ -10,7 +10,6 @@ if (process.env.NODE_ENV !== 'production') {
   await dotenv.config();
 }
 
-// ✅ Make sure these are named exactly like this in Render dashboard:
 console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "❌ missing");
 console.log("🟢 SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? "loaded" : "❌ missing");
 console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "❌ missing");
@@ -20,14 +19,15 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Supabase client with the correct environment variables
+// Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
-// 🔁 Redirect www to non-www
 const app = express();
+
+// Redirect www to non-www
 app.use((req, res, next) => {
   const host = req.headers.host;
   if (host && host.startsWith('www.')) {
@@ -37,21 +37,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// 📄 Serve sitemap.xml
+// Serve sitemap.xml
 app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml');
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
-// 📁 Serve static frontend and parse JSON
+// Serve static frontend and parse JSON
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
-// ⚙️ Ethereum provider and faucet wallet
+// Ethereum provider and faucet wallet
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
-// 🚀 POST /send (Send ETH to a wallet)
+// POST /send
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
@@ -61,7 +61,7 @@ app.post('/send', async (req, res) => {
 
   try {
     const balance = await provider.getBalance(wallet.address);
-    if (balance.lt(parseEther('0.1'))) {
+    if (balance.lt(parseUnits('0.05', 'ether'))) {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
     }
 
@@ -91,7 +91,7 @@ app.post('/send', async (req, res) => {
 
     const tx = await wallet.sendTransaction({
       to: address,
-      value: parseEther('0.05'),
+      value: parseUnits('0.05', 'ether'),
     });
 
     const { error: insertError } = await supabase
@@ -110,7 +110,7 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// 📦 GET /api/transactions (Recent faucet transactions)
+// GET /api/transactions
 app.get('/api/transactions', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -139,17 +139,17 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
-// 🌐 Serve frontend entry point
+// Serve frontend
 app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// ⚠️ 404 fallback
+// 404 fallback
 app.use((req, res) => {
   res.status(404).send('404 - Page Not Found');
 });
 
-// 🟢 Start the server
+// Start server
 app.listen(PORT, () => {
   console.log(`✅ Faucet server running at http://localhost:${PORT}`);
 });
