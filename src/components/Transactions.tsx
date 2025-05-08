@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient('https://npgojsqtobjizdbcxwgq.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y'); // Replace with your Supabase URL and key
+const supabase = createClient(
+  'https://npgojsqtobjizdbcxwgq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZ29qc3F0b2JqaXpkYmN4d2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2MzUzNDQsImV4cCI6MjA2MTIxMTM0NH0.gDuHb9s-aIg8qs3b8cpkACOTjihEJddpJTTLkFSkS_Y'
+);
 
 interface Transaction {
   wallet_address: string;
@@ -14,6 +17,7 @@ interface Transaction {
   from: string;
   to: string;
   timeStamp: number;
+  hash: string;
 }
 
 const Transactions = () => {
@@ -21,25 +25,27 @@ const Transactions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
-  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051'; // Your wallet address
-  const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB'; // Your Etherscan API key
+
+  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051';
+  const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB';
 
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
 
-      // Fetch wallet request timestamp from Supabase
-      const { data, error } = await supabase
-        .from('wallet_requests') // Your Supabase table name
-        .select('last_requested_at')
+      // Fetch latest request timestamp from Supabase
+      const { data: lastRequest, error } = await supabase
+        .from('wallets')
+        .select('created_at')
         .eq('wallet_address', walletAddress)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
-      if (error) {
-        console.error('Error fetching last request data:', error);
-      } else {
-        // Check if the last request was within the last 24 hours
-        const lastRequestedAt = new Date(data?.last_requested_at);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching request timestamp:', error);
+      } else if (lastRequest) {
+        const lastRequestedAt = new Date(lastRequest.created_at);
         const now = new Date();
         const diffInHours = (now.getTime() - lastRequestedAt.getTime()) / (1000 * 3600);
 
@@ -57,17 +63,20 @@ const Transactions = () => {
       // Fetch transaction history
       const response = await fetch(`https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`);
       const dataTx = await response.json();
-      console.log('Fetched Data:', dataTx);
 
       if (dataTx.status === '1' && Array.isArray(dataTx.result)) {
-        // Filter only transactions where the wallet is the sender (outgoing transactions)
-        const filteredTransactions = dataTx.result.filter((tx: any) =>
-          tx.from.toLowerCase() === walletAddress.toLowerCase()) // Outgoing transactions
-        .slice(0, 5);
+        const filteredTransactions = dataTx.result
+          .filter((tx: any) => tx.from.toLowerCase() === walletAddress.toLowerCase())
+          .slice(0, 5);
         setTransactions(filteredTransactions);
       } else {
         throw new Error(dataTx.message || 'No transactions found');
       }
+
+      toast({
+        title: "Success",
+        description: "Transactions loaded",
+      });
 
       setIsLoading(false);
     } catch (error) {
@@ -137,11 +146,7 @@ const Transactions = () => {
                   {transactions.map((tx, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono">
-                        {/* Display receiver address for outgoing transactions */}
-                        {tx.to.toLowerCase() !== walletAddress.toLowerCase() 
-                          ? `${tx.to.substring(0, 6)}...${tx.to.slice(-4)}`
-                          : null 
-                        }
+                        {`${tx.to.substring(0, 6)}...${tx.to.slice(-4)}`}
                       </TableCell>
                       <TableCell>
                         {new Date(tx.timeStamp * 1000).toLocaleString()}
