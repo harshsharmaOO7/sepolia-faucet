@@ -12,7 +12,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // ✅ Make sure these are named exactly like this in Render dashboard:
 console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "❌ missing");
-console.log("🟢 SUPABASE_KEY:", process.env.SUPABASE_KEY ? "loaded" : "❌ missing");
+console.log("🟢 SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? "loaded" : "❌ missing");
 console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "❌ missing");
 console.log("🟢 PRIVATE_KEY:", process.env.PRIVATE_KEY ? "loaded" : "❌ missing");
 
@@ -20,10 +20,10 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Supabase client
+// ✅ Initialize Supabase client with the correct environment variables
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
+  process.env.SUPABASE_ANON_KEY
 );
 
 // 🔁 Redirect www to non-www
