@@ -5,61 +5,68 @@ import { createClient } from '@supabase/supabase-js';
 import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
 import rateLimit from 'express-rate-limit';
 
-// Load .env only in development
+// Load environment variables in development
 if (process.env.NODE_ENV !== 'production') {
   const dotenv = await import('dotenv');
-  dotenv.config();
+  await dotenv.config();
 }
 
+// Create Express app
 const app = express();
 
-console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "missing");
-console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "missing");
+// Debug environment variables
+console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "❌ missing");
+console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "❌ missing");
 
 const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Supabase client
+// Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
-// Redirect www to non-www
+// 🔁 Redirect www to non-www
 app.use((req, res, next) => {
   const host = req.headers.host;
-  if (host.startsWith('www.')) {
+  if (host && host.startsWith('www.')) {
     const newHost = host.replace(/^www\./, '');
     return res.redirect(301, `https://${newHost}${req.url}`);
   }
   next();
 });
 
-// Serve sitemap
+// 📄 Serve sitemap.xml
 app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml');
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
-// Serve static files and parse JSON
+// 📁 Serve static frontend and parse JSON
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.json());
 
-// Wallet and provider
+// ⚙️ Ethereum provider and faucet wallet
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
-// Rate limit: 3 req/IP/day
+// 🚫 Rate limiting per IP (3 requests per 24 hours)
 const faucetLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 3,
-  keyGenerator: (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-  message: { success: false, message: 'Too many requests from this IP. Try again in 24 hours.' }
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  },
+  message: {
+    success: false,
+    message: 'Too many requests from this IP. Try again in 24 hours.'
+  }
 });
 app.use('/send', faucetLimiter);
 
-// POST /send
+// 🚀 POST /send (Send ETH to a wallet)
 app.post('/send', async (req, res) => {
   const { address } = req.body;
 
@@ -69,7 +76,7 @@ app.post('/send', async (req, res) => {
 
   try {
     const balance = await provider.getBalance(wallet.address);
-    if (balance < parseEther('0.1')) {
+    if (balance.lt(parseEther('0.1'))) {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
     }
 
@@ -81,16 +88,19 @@ app.post('/send', async (req, res) => {
       .limit(1);
 
     if (error) {
-      console.error('Supabase select error:', error);
+      console.error('🛑 Supabase SELECT error:', error);
       return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
-    if (previous && previous.length > 0) {
+    if (previous?.length > 0) {
       const lastRequestTime = new Date(previous[0].created_at);
       const now = new Date();
-      const hoursPassed = (now.getTime() - lastRequestTime.getTime()) / (1000 * 60 * 60);
+      const hoursPassed = (now - lastRequestTime) / (1000 * 60 * 60);
       if (hoursPassed < 24) {
-        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours.' });
+        return res.status(429).json({
+          success: false,
+          message: 'You can only request once every 24 hours.'
+        });
       }
     }
 
@@ -104,18 +114,18 @@ app.post('/send', async (req, res) => {
       .insert([{ wallet_address: address, tx_hash: tx.hash }]);
 
     if (insertError) {
-      console.error('Supabase insert error:', insertError);
+      console.error('🛑 Supabase INSERT error:', insertError);
       return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
     res.json({ success: true, txHash: tx.hash });
   } catch (err) {
-    console.error('Transaction error:', err);
+    console.error('🛑 Transaction error:', err);
     res.status(500).json({ success: false, message: 'Transaction failed.' });
   }
 });
 
-// GET /api/transactions
+// 📦 GET /api/transactions (Recent faucet transactions)
 app.get('/api/transactions', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -125,7 +135,7 @@ app.get('/api/transactions', async (req, res) => {
       .limit(10);
 
     if (error) {
-      console.error('Supabase fetch error:', error);
+      console.error('🛑 Supabase fetch error:', error);
       return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 
@@ -139,22 +149,22 @@ app.get('/api/transactions', async (req, res) => {
 
     res.json(transactions);
   } catch (err) {
-    console.error('Transaction fetch error:', err);
+    console.error('🛑 Fetch error:', err);
     res.status(500).json({ success: false, message: 'Failed to load transactions.' });
   }
 });
 
-// Serve frontend
+// 🌐 Serve frontend entry point
 app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// 404 fallback
+// ⚠️ 404 fallback
 app.use((req, res) => {
   res.status(404).send('404 - Page Not Found');
 });
 
-// Start server
+// 🟢 Start the server
 app.listen(PORT, () => {
   console.log(`✅ Faucet server running at http://localhost:${PORT}`);
 });
