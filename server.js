@@ -71,7 +71,7 @@ app.post('/send', async (req, res) => {
 
   try {
     const balance = await provider.getBalance(wallet.address); // ✅ Ethers v6 fix
-    if (balance.lt(parseEther('0.1'))) {
+   if (balance < parseEther('0.1')) {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
     }
 
