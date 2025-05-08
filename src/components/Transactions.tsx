@@ -11,6 +11,7 @@ const supabase = createClient(
 );
 
 interface Transaction {
+  from: string;
   to: string;
   timeStamp: number;
   hash: string;
@@ -22,14 +23,13 @@ const Transactions = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
-  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051';
+  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051'.toLowerCase();
   const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB';
 
   const fetchTransactions = async () => {
     try {
       setIsRefreshing(true);
 
-      // Check last request in Supabase
       const { data: lastRequest, error } = await supabase
         .from('wallets')
         .select('created_at')
@@ -58,15 +58,15 @@ const Transactions = () => {
         }
       }
 
-      // Fetch transaction data
       const res = await fetch(
         `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
       );
       const data = await res.json();
 
       if (data.status === '1' && Array.isArray(data.result)) {
-        const recentTx = data.result.slice(0, 5); // Show latest 5 tx
-        setTransactions(recentTx);
+        // Filter for outgoing transactions only
+        const outgoingTx = data.result.filter((tx: Transaction) => tx.from.toLowerCase() === walletAddress);
+        setTransactions(outgoingTx.slice(0, 5)); // limit to 5
       } else {
         throw new Error(data.message || 'No transactions found');
       }
@@ -140,7 +140,7 @@ const Transactions = () => {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-8">No transactions found</div>
+              <div className="text-center py-8">No outgoing transactions found</div>
             )}
           </div>
         </div>
