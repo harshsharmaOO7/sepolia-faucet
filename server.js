@@ -13,7 +13,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 const app = express();
 
-// Debug: Print envs once (remove this after confirming it's correct)
 console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "missing");
 console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "missing");
 
@@ -63,15 +62,14 @@ app.use('/send', faucetLimiter);
 // POST /send
 app.post('/send', async (req, res) => {
   const { address } = req.body;
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   if (!isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid Ethereum address.' });
   }
 
   try {
-    const balance = await provider.getBalance(wallet.address); // ✅ Ethers v6 fix
-   if (balance < parseEther('0.1')) {
+    const balance = await provider.getBalance(wallet.address);
+    if (balance < parseEther('0.1')) {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
     }
 
@@ -103,7 +101,7 @@ app.post('/send', async (req, res) => {
 
     const { error: insertError } = await supabase
       .from('wallets')
-      .insert([{ wallet_address: address, tx_hash: tx.hash, ip_address: ip }]);
+      .insert([{ wallet_address: address, tx_hash: tx.hash }]);
 
     if (insertError) {
       console.error('Supabase insert error:', insertError);
