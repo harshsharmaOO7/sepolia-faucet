@@ -61,9 +61,9 @@ app.post('/send', async (req, res) => {
 
   try {
     const balance = await provider.getBalance(wallet.address);
-    if (balance.lt(parseUnits('0.05', 'ether'))) {
-      return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
-    }
+if (balance < parseUnits('0.05', 'ether')) {
+  return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
+}
 
     const { data: previous, error } = await supabase
       .from('wallets')
