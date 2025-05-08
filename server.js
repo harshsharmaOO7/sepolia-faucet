@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { JsonRpcProvider, Wallet, isAddress, parseEther } from 'ethers';
-import rateLimit from 'express-rate-limit';
 
 // Load environment variables in development
 if (process.env.NODE_ENV !== 'production') {
@@ -11,12 +10,9 @@ if (process.env.NODE_ENV !== 'production') {
   await dotenv.config();
 }
 
-// Create Express app
-const app = express();
-
-// Debug environment variables
+// ✅ Make sure these are named exactly like this in Render dashboard:
 console.log("🟢 SUPABASE_URL:", process.env.SUPABASE_URL ? "loaded" : "❌ missing");
-console.log("🟢 SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? "loaded" : "❌ missing");
+console.log("🟢 SUPABASE_KEY:", process.env.SUPABASE_KEY ? "loaded" : "❌ missing");
 console.log("🟢 RPC_URL:", process.env.RPC_URL ? "loaded" : "❌ missing");
 console.log("🟢 PRIVATE_KEY:", process.env.PRIVATE_KEY ? "loaded" : "❌ missing");
 
@@ -24,13 +20,14 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Supabase client
+// ✅ Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_KEY
 );
 
 // 🔁 Redirect www to non-www
+const app = express();
 app.use((req, res, next) => {
   const host = req.headers.host;
   if (host && host.startsWith('www.')) {
@@ -53,20 +50,6 @@ app.use(express.json());
 // ⚙️ Ethereum provider and faucet wallet
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
-
-// 🚫 Rate limiting per IP (3 requests per 24 hours)
-const faucetLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  max: 3,
-  keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  },
-  message: {
-    success: false,
-    message: 'Too many requests from this IP. Try again in 24 hours.'
-  }
-});
-app.use('/send', faucetLimiter);
 
 // 🚀 POST /send (Send ETH to a wallet)
 app.post('/send', async (req, res) => {
