@@ -21,7 +21,7 @@ const Transactions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
-  const walletAddress = '0xFB25f3A16b44527157519C3C782616869842E085'; // Your wallet address
+  const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051'; // Your wallet address
   const apiKey = 'S11IK519NV1693XP5HGCBGY93QFHRF1VIB'; // Your Etherscan API key
 
   const fetchTransactions = async () => {
