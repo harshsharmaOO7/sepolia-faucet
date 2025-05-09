@@ -43,16 +43,18 @@ const Transactions = () => {
         console.error('Supabase error:', error);
       }
 
+      // Check if the last request is within 24 hours
       if (lastRequest) {
         const lastTime = new Date(lastRequest.created_at);
         const now = new Date();
         const diffInHours = (now.getTime() - lastTime.getTime()) / (1000 * 3600);
 
+        // If it's within 24 hours, disable the button and show the toast
         if (diffInHours < 24) {
           setIsButtonDisabled(true);
           toast({
             title: "Limit Reached",
-            description: "You can only request once every 24 hours.",
+            description: "You can only request once every 24 hours. Please try again later.",
             variant: "destructive",
           });
           setIsLoading(false);
@@ -60,6 +62,7 @@ const Transactions = () => {
         }
       }
 
+      // Fetch transactions if 24 hours have passed or if it's the first request
       const res = await fetch(
         `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`
       );
