@@ -32,10 +32,22 @@ const Header = () => {
             Transactions
           </a>
           <div className="flex items-center space-x-2">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               <Github size={20} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Twitter"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               <Twitter size={20} />
             </a>
           </div>
@@ -68,10 +80,22 @@ const Header = () => {
             Transactions
           </a>
           <div className="flex items-center space-x-4 py-2">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               <Github size={20} />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="https://twitter.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Twitter"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               <Twitter size={20} />
             </a>
           </div>
