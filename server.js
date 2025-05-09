@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
@@ -19,51 +20,51 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const app = express();
+
+app.use(compression());
+app.use(express.json());
 
 // Redirect www to non-www
 app.use((req, res, next) => {
   const host = req.headers.host;
-  if (host && host.startsWith('www.')) {
-    const newHost = host.replace(/^www\./, '');
-    return res.redirect(301, `https://${newHost}${req.url}`);
+  if (host?.startsWith('www.')) {
+    return res.redirect(301, `https://${host.slice(4)}${req.url}`);
   }
   next();
 });
 
-// Serve sitemap.xml
+// Serve sitemap
 app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml');
   res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
-// Serve static frontend and parse JSON
-app.use(express.static(path.join(__dirname, 'dist')));
-app.use(express.json());
+// Cache static assets for 30 days
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days
+    }
+  }
+}));
 
-// Ethereum provider and faucet wallet
 const provider = new JsonRpcProvider(process.env.RPC_URL);
 const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 
 // POST /send
 app.post('/send', async (req, res) => {
   const { address } = req.body;
-
   if (!isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid Ethereum address.' });
   }
 
   try {
     const balance = await provider.getBalance(wallet.address);
-if (balance < parseUnits('0.05', 'ether')) {
-  return res.status(503).json({ success: false, message: 'Faucet is low on funds. Please try later.' });
-}
+    if (balance < parseUnits('0.05', 'ether')) {
+      return res.status(503).json({ success: false, message: 'Faucet is low on funds. Try later.' });
+    }
 
     const { data: previous, error } = await supabase
       .from('wallets')
@@ -74,25 +75,17 @@ if (balance < parseUnits('0.05', 'ether')) {
 
     if (error) {
       console.error('🛑 Supabase SELECT error:', error);
-      return res.status(500).json({ success: false, message: 'Internal server error.' });
+      return res.status(500).json({ success: false, message: 'Database error.' });
     }
 
-    if (previous?.length > 0) {
-      const lastRequestTime = new Date(previous[0].created_at);
-      const now = new Date();
-      const hoursPassed = (now - lastRequestTime) / (1000 * 60 * 60);
+    if (previous?.length) {
+      const hoursPassed = (Date.now() - new Date(previous[0].created_at).getTime()) / (1000 * 60 * 60);
       if (hoursPassed < 24) {
-        return res.status(429).json({
-          success: false,
-          message: 'You can only request once every 24 hours.'
-        });
+        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours.' });
       }
     }
 
-    const tx = await wallet.sendTransaction({
-      to: address,
-      value: parseUnits('0.05', 'ether'),
-    });
+    const tx = await wallet.sendTransaction({ to: address, value: parseUnits('0.05', 'ether') });
 
     const { error: insertError } = await supabase
       .from('wallets')
@@ -100,7 +93,7 @@ if (balance < parseUnits('0.05', 'ether')) {
 
     if (insertError) {
       console.error('🛑 Supabase INSERT error:', insertError);
-      return res.status(500).json({ success: false, message: 'Internal server error.' });
+      return res.status(500).json({ success: false, message: 'Database write error.' });
     }
 
     res.json({ success: true, txHash: tx.hash });
@@ -121,7 +114,7 @@ app.get('/api/transactions', async (req, res) => {
 
     if (error) {
       console.error('🛑 Supabase fetch error:', error);
-      return res.status(500).json({ success: false, message: 'Internal server error.' });
+      return res.status(500).json({ success: false, message: 'Database error.' });
     }
 
     const transactions = data.map((tx) => ({
@@ -139,17 +132,12 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
-// Serve frontend
-app.get(['/', '/index.html'], (req, res) => {
+// Serve index.html for React SPA
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-// 404 fallback
-app.use((req, res) => {
-  res.status(404).send('404 - Page Not Found');
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ Faucet server running at http://localhost:${PORT}`);
+  console.log(`✅ Faucet server running on http://localhost:${PORT}`);
 });
