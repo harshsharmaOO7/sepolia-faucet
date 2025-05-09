@@ -35,10 +35,22 @@ const Footer = () => {
 
             <h3 className="text-lg font-semibold mt-6 mb-2">Connect</h3>
             <div className="flex space-x-4">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="icon-link">
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="icon-link"
+                aria-label="GitHub"
+              >
                 <Github size={20} />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="icon-link">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="icon-link"
+                aria-label="Twitter"
+              >
                 <Twitter size={20} />
               </a>
             </div>
