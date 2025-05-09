@@ -19,7 +19,6 @@ interface Transaction {
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
@@ -53,7 +52,6 @@ const Transactions = () => {
             description: "You can only request once every 24 hours.",
             variant: "destructive",
           });
-          setIsLoading(false);
           return;
         }
       }
@@ -80,7 +78,6 @@ const Transactions = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
   };
