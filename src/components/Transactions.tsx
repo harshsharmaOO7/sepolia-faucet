@@ -19,7 +19,9 @@ interface Transaction {
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const { toast } = useToast();
 
   const walletAddress = '0xB27AAc3e5DA5317FE6E06B7f019413719c6FC051'.toLowerCase();
@@ -47,11 +49,13 @@ const Transactions = () => {
         const diffInHours = (now.getTime() - lastTime.getTime()) / (1000 * 3600);
 
         if (diffInHours < 24) {
+          setIsButtonDisabled(true);
           toast({
             title: "Limit Reached",
             description: "You can only request once every 24 hours.",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
       }
@@ -78,6 +82,7 @@ const Transactions = () => {
         variant: "destructive",
       });
     } finally {
+      setIsLoading(false);
       setIsRefreshing(false);
     }
   };
@@ -97,7 +102,7 @@ const Transactions = () => {
             variant="outline" 
             size="sm" 
             onClick={fetchTransactions}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isButtonDisabled}
             className="gap-1"
           >
             <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
