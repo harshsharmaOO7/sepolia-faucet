@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X, Github, Twitter } from "lucide-react";
@@ -43,7 +42,12 @@ const Header = () => {
         </nav>
 
         {/* Mobile Menu Button */}
-        <button className="md:hidden" onClick={toggleMenu}>
+        <button
+          className="md:hidden"
+          onClick={toggleMenu}
+          aria-label="Toggle navigation menu"
+          title="Toggle menu"
+        >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
