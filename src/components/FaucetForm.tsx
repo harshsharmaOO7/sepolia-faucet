@@ -147,6 +147,7 @@ const FaucetForm = () => {
                 onCheckedChange={(checked) => {
                   setCaptchaVerified(!!checked);
                 }}
+                aria-label="Checkbox to confirm CAPTCHA"
               />
               <span className="text-sm font-medium leading-none">I'm not a robot</span>
               {isLoading && !captchaVerified && (
@@ -162,6 +163,7 @@ const FaucetForm = () => {
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={handleSubmit}
           disabled={isLoading || !captchaVerified || !address}
+          aria-label="Request 0.05 Sepolia ETH"
         >
           {isLoading ? (
             <>
