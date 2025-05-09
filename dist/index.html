@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Sepolia ETH Faucet - Get Free Testnet Ethereum for Development</title>
     <meta name="description" content="Get free Sepolia testnet ETH instantly on the Ethereum network for blockchain development, dApp testing, and smart contract deployments." />
     <meta name="author" content="harshrepo" />
@@ -31,44 +32,8 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" type="application/xml" href="data:text/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHVybHNldCB4bWxucz0iaHR0cDovL3d3dy5zaXRlbWFwcy5vcmcvc2NoZW1hcy9zaXRlbWFwLzAuOSI+CiAgPHVybD4KICAgIDxsb2M+aHR0cHM6Ly9zZXBvbGlhLWZhdWNldC1raTJoLm9ucmVuZGVyLmNvbS88L2xvYz4KICAgIDxsYXN0bW9kPjIwMjUtMDUtMDY8L2xhc3Rtb2Q+CiAgICA8Y2hhbmdlZnJlcT5kYWlseTwvY2hhbmdlZnJlcT4KICAgIDxwcmlvcml0eT4xLjA8L3ByaW9yaXR5PgogIDwvdXJsPgo8L3VybHNldD4K" />
+    <link rel="preload" as="script" href="data:application/octet-stream;base64,aW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnCmltcG9ydCBBcHAgZnJvbSAnLi9BcHAudHN4JwppbXBvcnQgJy4vaW5kZXguY3NzJwoKY3JlYXRlUm9vdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicm9vdCIpISkucmVuZGVyKDxBcHAgLz4pOwo=" />
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Sepolia ETH Faucet",
-      "url": "https://sepolia-faucet-ki2h.onrender.com",
-      "description": "Get free testnet ETH instantly on the Ethereum Sepolia network for development and testing. No registration required.",
-      "applicationCategory": "DeveloperApplication",
-      "offers": {
-        "@type": "Offer",
-        "price": "0.00",
-        "priceCurrency": "USD"
-      },
-      "operatingSystem": "Any",
-      "author": {
-        "@type": "Person",
-        "name": "harshrepo"
-      }
-    }
-    </script>
-
-    <script>
-      if (window.location.hostname.indexOf('www.') === 0) {
-        window.location.href = window.location.href.replace('www.', '');
-      }
-    </script>
-
-    <!-- Google Analytics Script -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N397RJ1HVC"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      gtag('js', new Date());
-      gtag('config', 'G-N397RJ1HVC');
-    </script>
-
-    <!-- Style fallback to match app UI -->
     <style>
       body {
         margin: 0;
@@ -97,7 +62,6 @@
         color: #ccc;
       }
     </style>
-   <!-- <link rel="preload" href="https://cdn.gpteng.co/gptengineer.js" as="script" /> -->
     <script type="module" crossorigin src="./assets/index-CezMbqPX.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/vendor-0FzSNBG2.js">
     <link rel="stylesheet" crossorigin href="./assets/index-DGJH_swQ.css">
@@ -105,13 +69,37 @@
 
   <body>
     <div id="root">
-      <!-- SEO Fallback shown before JS loads -->
       <div id="seo-fallback">
         <h1>Sepolia ETH Faucet - Free Ethereum Testnet for Developers</h1>
         <p>Get free Sepolia testnet ETH for blockchain development. No sign-up needed.</p>
       </div>
     </div>
-    <!-- Preload main JavaScript -->
-    <link rel="preload" as="script" href="data:application/octet-stream;base64,aW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnCmltcG9ydCBBcHAgZnJvbSAnLi9BcHAudHN4JwppbXBvcnQgJy4vaW5kZXguY3NzJwoKY3JlYXRlUm9vdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicm9vdCIpISkucmVuZGVyKDxBcHAgLz4pOwo=" />
+
+    <!-- Remove 'www.' prefix -->
+    <script>
+      if (window.location.hostname.indexOf('www.') === 0) {
+        window.location.href = window.location.href.replace('www.', '');
+      }
+    </script>
+
+    <!-- GPT Engineer tracking -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module" defer></script>
+
+    <!-- Lazy-load Google Analytics after 2s -->
+    <script>
+      setTimeout(() => {
+        const gtmScript = document.createElement('script');
+        gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-N397RJ1HVC';
+        gtmScript.async = true;
+        document.head.appendChild(gtmScript);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-N397RJ1HVC');
+      }, 2000);
+    </script>
+
+    <!-- App Entry -->
   </body>
 </html>
