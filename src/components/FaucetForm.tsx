@@ -77,15 +77,37 @@ const FaucetForm = () => {
 
       const data = await response.json();
 
-      if (response.status === 429) {
+      // Handle faucet empty notification
+      if (data.faucetEmpty) {
         toast({
-          title: "Warning",
-          description: "You have already claimed ETH. Try again after 24 hours.",
+          title: "Faucet Empty",
+          description: "The faucet is currently empty. Please try again later.",
           variant: "destructive",
         });
         return;
       }
 
+      // Handle same IP within 24 hours
+      if (data.sameIP) {
+        toast({
+          title: "Warning",
+          description: "You have already requested ETH from this IP. Please wait 24 hours before requesting again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Handle invalid Ethereum address format
+      if (data.invalidAddress) {
+        toast({
+          title: "Error",
+          description: "The Ethereum address format is invalid. Please check and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Handle success and store the request time
       if (data.success) {
         localStorage.setItem(address, Date.now().toString());
         toast({
@@ -97,7 +119,6 @@ const FaucetForm = () => {
       } else {
         throw new Error(data.message || "Transaction failed");
       }
-
     } catch (error) {
       toast({
         title: "Error",
