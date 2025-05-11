@@ -56,6 +56,8 @@ const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
 // POST /send
 app.post('/send', async (req, res) => {
   const { address } = req.body;
+  const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+
   if (!isAddress(address)) {
     return res.status(400).json({ success: false, message: 'Invalid Ethereum address.' });
   }
@@ -66,30 +68,52 @@ app.post('/send', async (req, res) => {
       return res.status(503).json({ success: false, message: 'Faucet is low on funds. Try later.' });
     }
 
-    const { data: previous, error } = await supabase
+    // Wallet check
+    const { data: walletCheck, error: walletError } = await supabase
       .from('wallets')
       .select('created_at')
       .eq('wallet_address', address)
       .order('created_at', { ascending: false })
       .limit(1);
 
-    if (error) {
-      console.error('🛑 Supabase SELECT error:', error);
+    if (walletError) {
+      console.error('🛑 Supabase SELECT (wallet) error:', walletError);
       return res.status(500).json({ success: false, message: 'Database error.' });
     }
 
-    if (previous?.length) {
-      const hoursPassed = (Date.now() - new Date(previous[0].created_at).getTime()) / (1000 * 60 * 60);
+    if (walletCheck?.length) {
+      const hoursPassed = (Date.now() - new Date(walletCheck[0].created_at).getTime()) / (1000 * 60 * 60);
       if (hoursPassed < 24) {
-        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours.' });
+        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours per wallet.' });
       }
     }
 
+    // IP check
+    const { data: ipCheck, error: ipError } = await supabase
+      .from('wallets')
+      .select('created_at')
+      .eq('ip_address', ipAddress)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (ipError) {
+      console.error('🛑 Supabase SELECT (IP) error:', ipError);
+      return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+
+    if (ipCheck?.length) {
+      const hoursPassed = (Date.now() - new Date(ipCheck[0].created_at).getTime()) / (1000 * 60 * 60);
+      if (hoursPassed < 24) {
+        return res.status(429).json({ success: false, message: 'You can only request once every 24 hours per IP.' });
+      }
+    }
+
+    // Send ETH
     const tx = await wallet.sendTransaction({ to: address, value: parseUnits('0.05', 'ether') });
 
     const { error: insertError } = await supabase
       .from('wallets')
-      .insert([{ wallet_address: address, tx_hash: tx.hash }]);
+      .insert([{ wallet_address: address, tx_hash: tx.hash, ip_address: ipAddress }]);
 
     if (insertError) {
       console.error('🛑 Supabase INSERT error:', insertError);
