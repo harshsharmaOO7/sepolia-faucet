@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner"; // use sonner toast
 import { Loader2, AlertCircle } from "lucide-react";
 import {
   Card,
@@ -17,16 +17,14 @@ const FaucetForm = () => {
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [captchaVerified, setCaptchaVerified] = useState(false);
-  const { toast } = useToast();
 
-  // Function to check last request time for an address
   const checkLastRequest = (address: string) => {
     const lastRequest = localStorage.getItem(address);
     if (lastRequest) {
       const lastTime = parseInt(lastRequest, 10);
       const now = Date.now();
       const diff = now - lastTime;
-      if (diff < 86400000) { // 24 hours = 86400000 ms
+      if (diff < 86400000) {
         const secondsLeft = Math.floor((86400000 - diff) / 1000);
         return secondsLeft;
       }
@@ -38,31 +36,19 @@ const FaucetForm = () => {
     e.preventDefault();
 
     if (!address) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid Ethereum address",
-        variant: "destructive",
-      });
+      toast.error("Please enter a valid Ethereum address");
       return;
     }
 
     if (!captchaVerified) {
-      toast({
-        title: "Error",
-        description: "Please complete the CAPTCHA verification",
-        variant: "destructive",
-      });
+      toast.error("Please complete the CAPTCHA verification");
       return;
     }
 
     const timeLeft = checkLastRequest(address);
     if (timeLeft > 0) {
       const minutes = Math.floor(timeLeft / 60);
-      toast({
-        title: "Warning",
-        description: `Already requested! Try again in ${minutes} minutes.`,
-        variant: "destructive",
-      });
+      toast.warning(`Already requested! Try again in ${minutes} minutes.`);
       return;
     }
 
@@ -77,54 +63,31 @@ const FaucetForm = () => {
 
       const data = await response.json();
 
-      // Handle faucet empty notification
       if (data.faucetEmpty) {
-        toast({
-          title: "Faucet Empty",
-          description: "The faucet is currently empty. Please try again later.",
-          variant: "destructive",
-        });
+        toast.error("The faucet is currently empty. Please try again later.");
         return;
       }
 
-      // Handle same IP within 24 hours
       if (data.sameIP) {
-        toast({
-          title: "Warning",
-          description: "You have already requested ETH from this IP. Please wait 24 hours before requesting again.",
-          variant: "destructive",
-        });
+        toast.warning("You have already requested ETH from this IP. Please wait 24 hours.");
         return;
       }
 
-      // Handle invalid Ethereum address format
       if (data.invalidAddress) {
-        toast({
-          title: "Error",
-          description: "The Ethereum address format is invalid. Please check and try again.",
-          variant: "destructive",
-        });
+        toast.error("The Ethereum address format is invalid.");
         return;
       }
 
-      // Handle success and store the request time
       if (data.success) {
         localStorage.setItem(address, Date.now().toString());
-        toast({
-          title: "Success!",
-          description: `Transaction sent! TX Hash: ${data.txHash}`,
-        });
+        toast.success(`Transaction sent! TX Hash: ${data.txHash}`);
         setAddress('');
         setCaptchaVerified(false);
       } else {
         throw new Error(data.message || "Transaction failed");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
       console.error('Faucet error:', error);
     } finally {
       setIsLoading(false);
@@ -165,9 +128,7 @@ const FaucetForm = () => {
                 id="captcha"
                 checked={captchaVerified}
                 disabled={isLoading}
-                onCheckedChange={(checked) => {
-                  setCaptchaVerified(!!checked);
-                }}
+                onCheckedChange={(checked) => setCaptchaVerified(!!checked)}
                 aria-label="Checkbox to confirm CAPTCHA"
               />
               <span className="text-sm font-medium leading-none">I'm not a robot</span>
