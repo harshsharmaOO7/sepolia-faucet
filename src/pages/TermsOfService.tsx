@@ -91,7 +91,7 @@ const TermsOfService = () => {
               <h2 className="text-2xl font-semibold mb-4">8. Contact</h2>
               <p>
                 If you have any questions about these Terms, please contact us at:
-                <a href="mailto:contact@sepoliafaucet.com" className="text-primary hover:underline ml-1">
+                <a href="mailto:devloper.debug@gmail.com" className="text-primary hover:underline ml-1">
                   contact@sepoliafaucet.com
                 </a>
               </p>
