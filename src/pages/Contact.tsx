@@ -36,7 +36,7 @@ const Contact = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Mail className="h-5 w-5 text-primary" />
-                  <span>contact@sepoliafaucet.com</span>
+                  <span>devloper.debug@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MessageCircle className="h-5 w-5 text-primary" />
