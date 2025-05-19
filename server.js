@@ -156,6 +156,16 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
+// Serve ads.txt
+app.get('/ads.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('google.com, pub-1003334895524660, DIRECT, f08c47fec0942fa0');
+});
+
+// Serve index.html for React SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 // Serve index.html for React SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
