@@ -7,19 +7,18 @@ import Transactions from '@/components/Transactions';
 import FAQ from '@/components/FAQ';
 import AdBanner from '@/components/AdBanner';
 
-const desktopAd = {
-  key: "73c83d76e8d09ddff6cf52a5bc1a7f3b",
-  width: 728,
-  height: 90,
-};
-
-const mobileAd = {
-  key: "cdc6453f6c930fbdd1be9a0dbe3b73c1",
-  width: 320,
-  height: 50,
-};
-
 const Index = () => {
+  const desktopAd = {
+    key: "73c83d76e8d09ddff6cf52a5bc1a7f3b",
+    width: 728,
+    height: 90,
+  };
+  const mobileAd = {
+    key: "cdc6453f6c930fbdd1be9a0dbe3b73c1",
+    width: 320,
+    height: 50,
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
