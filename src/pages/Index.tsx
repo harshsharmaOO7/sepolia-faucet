@@ -8,8 +8,8 @@ import FAQ from '@/components/FAQ';
 import AdBanner from '@/components/AdBanner';
 
 const Index = () => {
-  const desktopAdScript = `<script type="text/javascript" src="//www.highperformanceformat.com/73c83d76e8d09ddff6cf52a5bc1a7f3b/invoke.js"></script>`;
-  const mobileAdScript = `<script type="text/javascript" src="//www.highperformanceformat.com/cdc6453f6c930fbdd1be9a0dbe3b73c1/invoke.js"></script>`;
+  const desktopAdScriptSrc = '//www.highperformanceformat.com/73c83d76e8d09ddff6cf52a5bc1a7f3b/invoke.js';
+  const mobileAdScriptSrc = '//www.highperformanceformat.com/cdc6453f6c930fbdd1be9a0dbe3b73c1/invoke.js';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -17,18 +17,15 @@ const Index = () => {
 
       <main className="flex-grow">
         <Hero />
-
         <HowItWorks />
 
         {/* Top Ad */}
         <div className="container mx-auto px-4 md:px-6">
-          {/* Desktop */}
           <div className="hidden md:block">
-            <AdBanner position="top" script={desktopAdScript} />
+            <AdBanner position="top" script={desktopAdScriptSrc} />
           </div>
-          {/* Mobile */}
           <div className="block md:hidden">
-            <AdBanner position="top" script={mobileAdScript} />
+            <AdBanner position="top" script={mobileAdScriptSrc} />
           </div>
         </div>
 
@@ -38,12 +35,11 @@ const Index = () => {
               <Transactions />
             </div>
             <div className="flex items-center justify-center">
-              {/* Side Ad */}
               <div className="hidden md:block">
-                <AdBanner position="side" script={desktopAdScript} />
+                <AdBanner position="side" script={desktopAdScriptSrc} />
               </div>
               <div className="block md:hidden">
-                <AdBanner position="side" script={mobileAdScript} />
+                <AdBanner position="side" script={mobileAdScriptSrc} />
               </div>
             </div>
           </div>
@@ -53,13 +49,11 @@ const Index = () => {
 
         {/* Bottom Ad */}
         <div className="container mx-auto px-4 md:px-6 py-8">
-          {/* Desktop */}
           <div className="hidden md:block">
-            <AdBanner position="bottom" script={desktopAdScript} />
+            <AdBanner position="bottom" script={desktopAdScriptSrc} />
           </div>
-          {/* Mobile */}
           <div className="block md:hidden">
-            <AdBanner position="bottom" script={mobileAdScript} />
+            <AdBanner position="bottom" script={mobileAdScriptSrc} />
           </div>
         </div>
       </main>
