@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner"; // use sonner toast
+import { toast } from "sonner";
 import { Loader2, AlertCircle } from "lucide-react";
 import {
   Card,
@@ -16,7 +16,7 @@ import {
 const FaucetForm = () => {
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const checkLastRequest = (address: string) => {
     const lastRequest = localStorage.getItem(address);
@@ -40,8 +40,8 @@ const FaucetForm = () => {
       return;
     }
 
-    if (!captchaVerified) {
-      toast.error("Please complete the CAPTCHA verification");
+    if (!recaptchaToken) {
+      toast.error("Please complete the reCAPTCHA verification");
       return;
     }
 
@@ -58,7 +58,7 @@ const FaucetForm = () => {
       const response = await fetch("/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address }),
+        body: JSON.stringify({ address, recaptchaToken }),
       });
 
       const data = await response.json();
@@ -82,7 +82,7 @@ const FaucetForm = () => {
         localStorage.setItem(address, Date.now().toString());
         toast.success(`Transaction sent! TX Hash: ${data.txHash}`);
         setAddress('');
-        setCaptchaVerified(false);
+        setRecaptchaToken(null);
       } else {
         throw new Error(data.message || "Transaction failed");
       }
@@ -122,20 +122,12 @@ const FaucetForm = () => {
             />
           </div>
 
-          <div className="p-4 bg-secondary/40 rounded-md border border-border/60">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="captcha"
-                checked={captchaVerified}
-                disabled={isLoading}
-                onCheckedChange={(checked) => setCaptchaVerified(!!checked)}
-                aria-label="Checkbox to confirm CAPTCHA"
-              />
-              <span className="text-sm font-medium leading-none">I'm not a robot</span>
-              {isLoading && !captchaVerified && (
-                <span className="text-xs text-muted-foreground ml-2">Verifying...</span>
-              )}
-            </div>
+          <div className="flex justify-center">
+            <ReCAPTCHA
+              sitekey="6LfUez8rAAAAAEPFQ7yJ84IB9hKq4apvdfdghyoz"
+              onChange={(token) => setRecaptchaToken(token)}
+              theme="light"
+            />
           </div>
         </form>
       </CardContent>
@@ -144,7 +136,7 @@ const FaucetForm = () => {
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={handleSubmit}
-          disabled={isLoading || !captchaVerified || !address}
+          disabled={isLoading || !recaptchaToken || !address}
           aria-label="Request 0.05 Sepolia ETH"
         >
           {isLoading ? (
