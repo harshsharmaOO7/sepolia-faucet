@@ -32,7 +32,19 @@ const Index = () => {
         <FAQ />
         
         <div className="container mx-auto px-4 md:px-6 py-8">
-          <AdBanner position="bottom" />
+          <AdBanner 
+  position="bottom" 
+  script={`<script type="text/javascript">
+    atOptions = {
+      'key' : '73c83d76e8d09ddff6cf52a5bc1a7f3b',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  </script>
+  <script type="text/javascript" src="//www.highperformanceformat.com/73c83d76e8d09ddff6cf52a5bc1a7f3b/invoke.js"></script>`}
+/>
         </div>
       </main>
       
