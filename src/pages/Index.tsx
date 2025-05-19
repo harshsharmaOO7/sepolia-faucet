@@ -5,9 +5,12 @@ import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
 import Transactions from '@/components/Transactions';
 import FAQ from '@/components/FAQ';
-import ResponsiveAd from '@/components/ResponsiveAd';
+import AdBanner from '@/components/AdBanner';
 
 const Index = () => {
+  const desktopAdScript = `<script type="text/javascript" src="//www.highperformanceformat.com/73c83d76e8d09ddff6cf52a5bc1a7f3b/invoke.js"></script>`;
+  const mobileAdScript = `<script type="text/javascript" src="//www.highperformanceformat.com/cdc6453f6c930fbdd1be9a0dbe3b73c1/invoke.js"></script>`;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -18,11 +21,15 @@ const Index = () => {
         <HowItWorks />
 
         {/* Top Ad */}
-        <div className="container mx-auto px-4 md:px-6 py-4">
-          <ResponsiveAd
-            desktopKey="73c83d76e8d09ddff6cf52a5bc1a7f3b"
-            mobileKey="cdc6453f6c930fbdd1be9a0dbe3b73c1"
-          />
+        <div className="container mx-auto px-4 md:px-6">
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <AdBanner position="top" script={desktopAdScript} />
+          </div>
+          {/* Mobile */}
+          <div className="block md:hidden">
+            <AdBanner position="top" script={mobileAdScript} />
+          </div>
         </div>
 
         <div className="container mx-auto px-4 md:px-6 py-16">
@@ -31,10 +38,13 @@ const Index = () => {
               <Transactions />
             </div>
             <div className="flex items-center justify-center">
-              <ResponsiveAd
-                desktopKey="73c83d76e8d09ddff6cf52a5bc1a7f3b"
-                mobileKey="cdc6453f6c930fbdd1be9a0dbe3b73c1"
-              />
+              {/* Side Ad */}
+              <div className="hidden md:block">
+                <AdBanner position="side" script={desktopAdScript} />
+              </div>
+              <div className="block md:hidden">
+                <AdBanner position="side" script={mobileAdScript} />
+              </div>
             </div>
           </div>
         </div>
@@ -43,10 +53,14 @@ const Index = () => {
 
         {/* Bottom Ad */}
         <div className="container mx-auto px-4 md:px-6 py-8">
-          <ResponsiveAd
-            desktopKey="73c83d76e8d09ddff6cf52a5bc1a7f3b"
-            mobileKey="cdc6453f6c930fbdd1be9a0dbe3b73c1"
-          />
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <AdBanner position="bottom" script={desktopAdScript} />
+          </div>
+          {/* Mobile */}
+          <div className="block md:hidden">
+            <AdBanner position="bottom" script={mobileAdScript} />
+          </div>
         </div>
       </main>
 
