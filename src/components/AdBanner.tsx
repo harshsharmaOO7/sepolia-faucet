@@ -27,20 +27,16 @@ const AdBanner: React.FC<AdBannerProps> = ({ position, script }) => {
 
   useEffect(() => {
     if (adRef.current && script) {
-      // Clear any existing content
+      // Clear any existing ad content
       adRef.current.innerHTML = '';
-
-      // Create a container for the ad
-      const container = document.createElement('div');
-      adRef.current.appendChild(container);
 
       // Create and append the script tag
       const scriptEl = document.createElement('script');
       scriptEl.type = 'text/javascript';
-      scriptEl.src = script;
+      scriptEl.src = script.startsWith('//') ? `https:${script}` : script;
       scriptEl.async = true;
 
-      container.appendChild(scriptEl);
+      adRef.current.appendChild(scriptEl);
     }
   }, [script]);
 
