@@ -32,7 +32,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height 
     // Create the external script tag to load the ad
     const invokeScript = document.createElement("script");
     invokeScript.type = "text/javascript";
-    invokeScript.src = `//www.highperformanceformat.com/${scriptKey}/invoke.js`;
+    invokeScript.src = `https://www.highperformanceformat.com/${scriptKey}/invoke.js`;
     invokeScript.async = true;
 
     // Append scripts to the ad container
