@@ -1,45 +1,50 @@
 import React, { useEffect, useRef } from "react";
 
-type AdBannerProps = {
+interface AdBannerProps {
   position: "top" | "side" | "bottom";
   scriptKey: string;
   width: number;
   height: number;
-};
+}
 
 const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!adRef.current) return;
 
-    containerRef.current.innerHTML = "";
+    // Clear previous ad scripts if any
+    adRef.current.innerHTML = "";
 
-    const atOptionsScript = document.createElement("script");
-    atOptionsScript.type = "text/javascript";
-    atOptionsScript.innerHTML = `
+    // Create the global ad options script
+    const optionsScript = document.createElement("script");
+    optionsScript.type = "text/javascript";
+    optionsScript.innerHTML = `
       atOptions = {
-        'key' : '${scriptKey}',
-        'format' : 'iframe',
-        'height' : ${height},
-        'width' : ${width},
-        'params' : {}
+        key: '${scriptKey}',
+        format: 'iframe',
+        height: ${height},
+        width: ${width},
+        params: {}
       };
     `;
-    containerRef.current.appendChild(atOptionsScript);
 
+    // Create the external script tag to load the ad
     const invokeScript = document.createElement("script");
     invokeScript.type = "text/javascript";
-    invokeScript.src = \`//www.highperformanceformat.com/${scriptKey}/invoke.js\`;
+    invokeScript.src = `//www.highperformanceformat.com/${scriptKey}/invoke.js`;
     invokeScript.async = true;
-    containerRef.current.appendChild(invokeScript);
+
+    // Append scripts to the ad container
+    adRef.current.appendChild(optionsScript);
+    adRef.current.appendChild(invokeScript);
   }, [scriptKey, width, height]);
 
   return (
     <div
-      ref={containerRef}
+      ref={adRef}
       className={`ad-banner ad-banner-${position}`}
-      style={{ width, height, margin: "0 auto" }}
+      style={{ width, height }}
     />
   );
 };
