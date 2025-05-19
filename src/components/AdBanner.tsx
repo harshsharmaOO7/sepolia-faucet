@@ -1,56 +1,46 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
-interface AdBannerProps {
-  position: 'top' | 'side' | 'bottom';
-  script?: string;
-}
+type AdBannerProps = {
+  position: "top" | "side" | "bottom";
+  scriptKey: string;
+  width: number;
+  height: number;
+};
 
-const AdBanner: React.FC<AdBannerProps> = ({ position, script }) => {
-  const adRef = useRef<HTMLDivElement>(null);
-
-  let classes =
-    'bg-card/70 backdrop-blur-sm border border-border/60 flex items-center justify-center overflow-hidden text-muted-foreground text-sm';
-
-  switch (position) {
-    case 'top':
-      classes += ' h-24 w-full rounded-lg mb-8';
-      break;
-    case 'side':
-      classes += ' h-96 w-full rounded-lg';
-      break;
-    case 'bottom':
-      classes += ' h-32 w-full rounded-lg mt-8';
-      break;
-    default:
-      classes += ' h-24 w-full rounded-lg';
-  }
+const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (adRef.current && script) {
-      // Clear any existing ad content
-      adRef.current.innerHTML = '';
+    if (!containerRef.current) return;
 
-      // Create and append the script tag
-      const scriptEl = document.createElement('script');
-      scriptEl.type = 'text/javascript';
-      scriptEl.src = script.startsWith('//') ? `https:${script}` : script;
-      scriptEl.async = true;
+    containerRef.current.innerHTML = "";
 
-      adRef.current.appendChild(scriptEl);
-    }
-  }, [script]);
+    const atOptionsScript = document.createElement("script");
+    atOptionsScript.type = "text/javascript";
+    atOptionsScript.innerHTML = `
+      atOptions = {
+        'key' : '${scriptKey}',
+        'format' : 'iframe',
+        'height' : ${height},
+        'width' : ${width},
+        'params' : {}
+      };
+    `;
+    containerRef.current.appendChild(atOptionsScript);
+
+    const invokeScript = document.createElement("script");
+    invokeScript.type = "text/javascript";
+    invokeScript.src = \`//www.highperformanceformat.com/${scriptKey}/invoke.js\`;
+    invokeScript.async = true;
+    containerRef.current.appendChild(invokeScript);
+  }, [scriptKey, width, height]);
 
   return (
-    <div className={classes}>
-      <div ref={adRef} className="w-full h-full text-center p-4">
-        {!script && (
-          <>
-            <p>Advertisement</p>
-            <p className="text-xs mt-1">Your ad could be here</p>
-          </>
-        )}
-      </div>
-    </div>
+    <div
+      ref={containerRef}
+      className={`ad-banner ad-banner-${position}`}
+      style={{ width, height, margin: "0 auto" }}
+    />
   );
 };
 
