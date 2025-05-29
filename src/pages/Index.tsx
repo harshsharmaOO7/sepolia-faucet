@@ -22,10 +22,10 @@ const Index = () => {
         {/* Top Ad */}
         <div className="container mx-auto px-4 md:px-6">
           <div className="hidden md:block">
-            <AdBanner position="top" scriptKey={desktopScriptKey} />
+            <AdBanner position="top" scriptKey={desktopScriptKey} width={728} height={90} />
           </div>
           <div className="block md:hidden">
-            <AdBanner position="top" scriptKey={mobileScriptKey} />
+            <AdBanner position="top" scriptKey={mobileScriptKey} width={320} height={50} />
           </div>
         </div>
 
@@ -36,10 +36,10 @@ const Index = () => {
             </div>
             <div className="flex items-center justify-center">
               <div className="hidden md:block">
-                <AdBanner position="side" scriptKey={desktopScriptKey} />
+                <AdBanner position="side" scriptKey={desktopScriptKey} width={300} height={250} />
               </div>
               <div className="block md:hidden">
-                <AdBanner position="side" scriptKey={mobileScriptKey} />
+                <AdBanner position="side" scriptKey={mobileScriptKey} width={320} height={50} />
               </div>
             </div>
           </div>
@@ -50,10 +50,10 @@ const Index = () => {
         {/* Bottom Ad */}
         <div className="container mx-auto px-4 md:px-6 py-8">
           <div className="hidden md:block">
-            <AdBanner position="bottom" scriptKey={desktopScriptKey} />
+            <AdBanner position="bottom" scriptKey={desktopScriptKey} width={728} height={90} />
           </div>
           <div className="block md:hidden">
-            <AdBanner position="bottom" scriptKey={mobileScriptKey} />
+            <AdBanner position="bottom" scriptKey={mobileScriptKey} width={320} height={50} />
           </div>
         </div>
       </main>
