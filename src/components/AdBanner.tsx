@@ -3,17 +3,19 @@ import React, { useEffect, useRef } from "react";
 interface AdBannerProps {
   position: "top" | "side" | "bottom";
   scriptKey: string;
-  width: number;
-  height: number;
 }
 
-const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height }) => {
+const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey }) => {
   const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!adRef.current) return;
 
     adRef.current.innerHTML = "";
+
+    const containerWidth = adRef.current.offsetWidth;
+    const isMobile = window.innerWidth < 768;
+    const height = isMobile ? 250 : 300;
 
     const optionsScript = document.createElement("script");
     optionsScript.type = "text/javascript";
@@ -22,7 +24,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height 
       "key: '" + scriptKey + "'," +
       "format: 'iframe'," +
       "height: " + height + "," +
-      "width: " + width + "," +
+      "width: " + containerWidth + "," +
       "params: {}" +
       "};";
 
@@ -33,13 +35,13 @@ const AdBanner: React.FC<AdBannerProps> = ({ position, scriptKey, width, height 
 
     adRef.current.appendChild(optionsScript);
     adRef.current.appendChild(invokeScript);
-  }, [scriptKey, width, height]);
+  }, [scriptKey]);
 
   return (
     <div
       ref={adRef}
-      className={`ad-banner ad-banner-${position}`}
-      style={{ width, height }}
+      className={`ad-banner ad-banner-${position} w-full`}
+      style={{ height: "auto", minHeight: 250 }}
     />
   );
 };
