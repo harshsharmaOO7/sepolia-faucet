@@ -8,16 +8,8 @@ import FAQ from '@/components/FAQ';
 import AdBanner from '@/components/AdBanner';
 
 const Index = () => {
-  const desktopAd = {
-    key: "73c83d76e8d09ddff6cf52a5bc1a7f3b",
-    width: 728,
-    height: 90,
-  };
-  const mobileAd = {
-    key: "cdc6453f6c930fbdd1be9a0dbe3b73c1",
-    width: 320,
-    height: 50,
-  };
+  const desktopScriptKey = "73c83d76e8d09ddff6cf52a5bc1a7f3b";
+  const mobileScriptKey = "cdc6453f6c930fbdd1be9a0dbe3b73c1";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -30,20 +22,10 @@ const Index = () => {
         {/* Top Ad */}
         <div className="container mx-auto px-4 md:px-6">
           <div className="hidden md:block">
-            <AdBanner
-              position="top"
-              scriptKey={desktopAd.key}
-              width={desktopAd.width}
-              height={desktopAd.height}
-            />
+            <AdBanner position="top" scriptKey={desktopScriptKey} />
           </div>
           <div className="block md:hidden">
-            <AdBanner
-              position="top"
-              scriptKey={mobileAd.key}
-              width={mobileAd.width}
-              height={mobileAd.height}
-            />
+            <AdBanner position="top" scriptKey={mobileScriptKey} />
           </div>
         </div>
 
@@ -54,20 +36,10 @@ const Index = () => {
             </div>
             <div className="flex items-center justify-center">
               <div className="hidden md:block">
-                <AdBanner
-                  position="side"
-                  scriptKey={desktopAd.key}
-                  width={desktopAd.width}
-                  height={desktopAd.height}
-                />
+                <AdBanner position="side" scriptKey={desktopScriptKey} />
               </div>
               <div className="block md:hidden">
-                <AdBanner
-                  position="side"
-                  scriptKey={mobileAd.key}
-                  width={mobileAd.width}
-                  height={mobileAd.height}
-                />
+                <AdBanner position="side" scriptKey={mobileScriptKey} />
               </div>
             </div>
           </div>
@@ -78,20 +50,10 @@ const Index = () => {
         {/* Bottom Ad */}
         <div className="container mx-auto px-4 md:px-6 py-8">
           <div className="hidden md:block">
-            <AdBanner
-              position="bottom"
-              scriptKey={desktopAd.key}
-              width={desktopAd.width}
-              height={desktopAd.height}
-            />
+            <AdBanner position="bottom" scriptKey={desktopScriptKey} />
           </div>
           <div className="block md:hidden">
-            <AdBanner
-              position="bottom"
-              scriptKey={mobileAd.key}
-              width={mobileAd.width}
-              height={mobileAd.height}
-            />
+            <AdBanner position="bottom" scriptKey={mobileScriptKey} />
           </div>
         </div>
       </main>
